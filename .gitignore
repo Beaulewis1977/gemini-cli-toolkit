@@ -1,0 +1,65 @@
+# Created by Gemini CLI Agent
+
+# Node.js & Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Build output
+dist/
+build/
+out/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Environment variables - IMPORTANT
+.env
+.env.*
+!.env.example
+
+# Logs
+logs
+*.log
+
+# Coverage reports
+coverage/
+*.lcov
+.nyc_output/
+
+# Caches
+.cache/
+.parcel-cache/
+.eslintcache
+.prettiercache
+*.tsbuildinfo
+
+# OS-generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs and editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Gemini CLI / MCP Configuration
+.mcp.json
+.gemini/
+memory-bank/

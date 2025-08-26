@@ -1,0 +1,494 @@
+name: CI/CD - Security & Quality Gates
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+env:
+  NODE_ENV: test
+  CI: true
+
+jobs:
+  # Security gates run first - everything depends on these passing
+  security-gate:
+    name: Security Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      security-passed: ${{ steps.security-check.outputs.passed }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: 'scripts/package.json'
+
+      - name: Install dependencies
+        working-directory: ./scripts
+        run: npm ci
+
+      - name: Run security test suite
+        id: security-check
+        working-directory: ./scripts
+        run: |
+          echo "Running comprehensive security test suite..."
+          npm test 2>&1 | tee security-results.txt
+          
+          # Check if tests passed
+          if [ ${PIPESTATUS[0]} -eq 0 ]; then
+            echo "✅ All security tests passed"
+            echo "passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Security tests failed"
+            echo "passed=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Upload security test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-test-results-${{ github.run_id }}
+          path: scripts/security-results.txt
+          retention-days: 30
+
+  # Vulnerability scanning
+  vulnerability-scan:
+    name: Vulnerability Scan
+    runs-on: ubuntu-latest
+    needs: security-gate
+    if: needs.security-gate.outputs.security-passed == 'true'
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: 'scripts/package.json'
+
+      - name: Install dependencies
+        working-directory: ./scripts
+        run: npm ci
+
+      - name: Run npm audit
+        working-directory: ./scripts
+        run: |
+          echo "🔍 Running npm audit..."
+          npm audit --audit-level=moderate || {
+            echo "❌ npm audit found vulnerabilities"
+            npm audit --audit-level=moderate --json > audit-results.json
+            exit 1
+          }
+
+      - name: Run dependency check
+        working-directory: ./scripts
+        run: |
+          echo "📦 Checking for outdated dependencies..."
+          npm outdated || true
+          echo "✅ Dependency check completed"
+
+  # Cross-platform testing matrix
+  cross-platform-test:
+    name: Test (${{ matrix.os }}, Node ${{ matrix.node-version }})
+    runs-on: ${{ matrix.os }}
+    needs: [security-gate, vulnerability-scan]
+    if: needs.security-gate.outputs.security-passed == 'true'
+    timeout-minutes: 20
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [16.x, 18.x, 20.x]
+        exclude:
+          # Reduce CI load by excluding some combinations
+          - os: windows-latest
+            node-version: 16.x
+          - os: macos-latest
+            node-version: 16.x
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: 'scripts/package.json'
+
+      - name: Install dependencies
+        working-directory: ./scripts
+        run: npm ci
+
+      - name: Setup .gemini directory for testing
+        run: |
+          echo "📁 Setting up .gemini directory structure for CI testing..."
+          
+          # Create .gemini directory structure
+          mkdir -p .gemini/agents
+          mkdir -p .gemini/memory-bank
+          mkdir -p .gemini/scripts
+          
+          # Create basic CLAUDE.md file using echo (cross-platform)
+          echo "# Gemini CLI Context Command Project" > .gemini/CLAUDE.md
+          echo "" >> .gemini/CLAUDE.md
+          echo "This is a test project for CI/CD pipeline validation." >> .gemini/CLAUDE.md
+          echo "" >> .gemini/CLAUDE.md
+          echo "## Project Overview" >> .gemini/CLAUDE.md
+          echo "" >> .gemini/CLAUDE.md
+          echo "Testing the gemini-cli functionality in CI environment." >> .gemini/CLAUDE.md
+          echo "" >> .gemini/CLAUDE.md
+          echo "## Context" >> .gemini/CLAUDE.md
+          echo "" >> .gemini/CLAUDE.md
+          echo "The context analyzer should be able to process this minimal project structure for testing purposes." >> .gemini/CLAUDE.md
+          
+          # Create basic settings.local.json file using echo (cross-platform)
+          echo "{" > .gemini/settings.local.json
+          echo "  \"project_name\": \"gemini-cli-test\"," >> .gemini/settings.local.json
+          echo "  \"ai_model\": \"claude-3-5-sonnet-20241022\"," >> .gemini/settings.local.json
+          echo "  \"context_mode\": \"summary\"," >> .gemini/settings.local.json
+          echo "  \"max_tokens\": 200000," >> .gemini/settings.local.json
+          echo "  \"test_environment\": true," >> .gemini/settings.local.json
+          echo "  \"enabledMcpjsonServers\": []" >> .gemini/settings.local.json
+          echo "}" >> .gemini/settings.local.json
+          
+          echo "✅ .gemini directory structure created successfully"
+
+      - name: Run functional tests
+        working-directory: ./scripts
+        run: |
+          echo "🧪 Running functional tests on ${{ matrix.os }} with Node ${{ matrix.node-version }}"
+          node context-analyzer.js summary || {
+            echo "❌ Context analyzer failed"
+            exit 1
+          }
+          
+          node context-cmd.js compact || {
+            echo "❌ Context command failed"
+            exit 1
+          }
+          
+          echo "✅ Functional tests passed"
+
+      - name: Test security module
+        working-directory: ./
+        run: |
+          echo "🔐 Testing security module..."
+          node -e "
+            import('./lib/security.js').then(({ InputValidator }) => {
+              try {
+                InputValidator.validateMode('compact');
+                console.log('✅ Security module working correctly');
+              } catch (error) {
+                console.error('❌ Security module test failed:', error);
+                process.exit(1);
+              }
+            }).catch(error => {
+              console.error('❌ Failed to import security module:', error);
+              process.exit(1);
+            });
+          "
+
+  # Installation script testing
+  installer-test:
+    name: Test Installers (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs: [security-gate, vulnerability-scan]
+    if: needs.security-gate.outputs.security-passed == 'true'
+    timeout-minutes: 15
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            installer: install.sh
+            shell: bash
+          - os: macos-latest
+            installer: install.sh
+            shell: bash
+          - os: windows-latest
+            installer: install.ps1
+            shell: pwsh
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Test installer - Unix
+        if: matrix.shell == 'bash'
+        run: |
+          echo "🔧 Testing ${{ matrix.installer }} on ${{ matrix.os }}"
+          chmod +x ./installers/${{ matrix.installer }}
+          
+          # Create a temporary home directory for testing
+          export TEST_HOME=$(mktemp -d)
+          export HOME=$TEST_HOME
+          
+          # Run installer
+          cd installers
+          ./${{ matrix.installer }} || {
+            echo "❌ Installer failed"
+            exit 1
+          }
+          
+          # Verify installation
+          if [ -f "$TEST_HOME/.gemini/scripts/context-cmd.js" ]; then
+            echo "✅ Installation verified - files copied correctly"
+          else
+            echo "❌ Installation verification failed"
+            ls -la "$TEST_HOME/.gemini/" || echo "No .gemini directory found"
+            exit 1
+          fi
+
+      - name: Test installer - Windows
+        if: matrix.shell == 'pwsh'
+        shell: pwsh
+        run: |
+          Write-Host "🔧 Testing ${{ matrix.installer }} on ${{ matrix.os }}"
+          
+          # Create temporary home directory
+          $TestHome = New-TemporaryFile | ForEach-Object { Remove-Item $_; New-Item -ItemType Directory -Path $_ }
+          $env:HOME = $TestHome.FullName
+          $env:USERPROFILE = $TestHome.FullName
+          
+          # Run installer
+          Set-Location installers
+          powershell -ExecutionPolicy Bypass -File ${{ matrix.installer }}
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "❌ Installer failed"
+            exit 1
+          }
+          
+          # Verify installation
+          $InstallPath = Join-Path $TestHome.FullName ".gemini\scripts\context-cmd.js"
+          if (Test-Path $InstallPath) {
+            Write-Host "✅ Installation verified - files copied correctly"
+          } else {
+            Write-Error "❌ Installation verification failed"
+            Get-ChildItem (Join-Path $TestHome.FullName ".gemini") -Recurse -ErrorAction SilentlyContinue
+            exit 1
+          }
+
+  # Code quality checks
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    needs: security-gate
+    if: needs.security-gate.outputs.security-passed == 'true'
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: 'scripts/package.json'
+
+      - name: Install dependencies
+        working-directory: ./scripts
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./scripts
+        run: |
+          echo "🔍 Running ESLint for code quality..."
+          npm run lint || {
+            echo "❌ ESLint found issues"
+            echo "🔧 To fix automatically, run: npm run lint:fix"
+            exit 1
+          }
+          echo "✅ ESLint checks passed"
+
+      - name: Check code formatting
+        working-directory: ./scripts
+        run: |
+          echo "🎨 Checking code formatting with Prettier..."
+          npm run format:check || {
+            echo "❌ Code formatting issues found"
+            echo "🔧 To fix automatically, run: npm run format"
+            exit 1
+          }
+          echo "✅ Code formatting is consistent"
+
+      - name: Check JavaScript syntax
+        run: |
+          echo "🔍 Checking JavaScript syntax..."
+          find . -name "*.js" -type f -not -path "./scripts/node_modules/*" | while read file; do
+            echo "Checking: $file"
+            node -c "$file" || {
+              echo "❌ Syntax error in $file"
+              exit 1
+            }
+          done
+          echo "✅ All JavaScript files have valid syntax"
+
+      - name: Check file structure
+        run: |
+          echo "📁 Verifying project structure..."
+          
+          # Check required files exist
+          required_files=(
+            "README.md"
+            "scripts/context-cmd.js"
+            "scripts/context-analyzer.js"
+            "lib/security.js"
+            "tests/security.test.js"
+          )
+          
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Required file missing: $file"
+              exit 1
+            fi
+          done
+          
+          echo "✅ All required files present"
+
+      - name: Check security file permissions
+        run: |
+          echo "🔒 Checking file permissions..."
+          
+          # Check that JavaScript files are not executable (security best practice)
+          find . -name "*.js" -type f -executable -not -path "./scripts/node_modules/*" | while read file; do
+            echo "⚠️  JavaScript file should not be executable: $file"
+          done
+          
+          # Check installer permissions
+          if [ ! -x "installers/install.sh" ]; then
+            echo "❌ install.sh should be executable"
+            exit 1
+          fi
+          
+          echo "✅ File permissions verified"
+
+  # Final validation
+  integration-test:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    needs: [cross-platform-test, installer-test, code-quality]
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: 'scripts/package.json'
+
+      - name: Install dependencies
+        working-directory: ./scripts
+        run: npm ci
+
+      - name: Setup .gemini directory for integration testing
+        run: |
+          echo "📁 Setting up .gemini directory structure for integration testing..."
+          
+          # Create .gemini directory structure
+          mkdir -p .gemini/agents
+          mkdir -p .gemini/memory-bank  
+          mkdir -p .gemini/scripts
+          
+          # Create basic CLAUDE.md file
+          cat > .gemini/CLAUDE.md << 'EOF'
+          # Gemini CLI Context Command Project
+          
+          This is a test project for CI/CD pipeline validation.
+          
+          ## Project Overview
+          
+          Testing the gemini-cli functionality in CI environment.
+          
+          ## Context
+          
+          The context analyzer should be able to process this minimal project structure for testing purposes.
+          EOF
+          
+          # Create basic settings.local.json file
+          cat > .gemini/settings.local.json << 'EOF'
+          {
+            "project_name": "gemini-cli-test",
+            "ai_model": "claude-3-5-sonnet-20241022",
+            "context_mode": "summary",
+            "max_tokens": 200000,
+            "test_environment": true,
+            "enabledMcpjsonServers": []
+          }
+          EOF
+          
+          echo "✅ .gemini directory structure created successfully"
+          ls -la .gemini/
+
+      - name: Run end-to-end test
+        working-directory: ./
+        run: |
+          echo "🚀 Running end-to-end integration test..."
+          
+          # Test the complete workflow
+          cd scripts
+          
+          # Test different modes
+          echo "Testing compact mode..."
+          timeout 30 node context-cmd.js compact || {
+            echo "❌ Compact mode failed"
+            exit 1
+          }
+          
+          echo "Testing standard mode..."
+          timeout 30 node context-cmd.js standard || {
+            echo "❌ Standard mode failed"  
+            exit 1
+          }
+          
+          echo "Testing detailed mode..."
+          timeout 30 node context-cmd.js detailed || {
+            echo "❌ Detailed mode failed"
+            exit 1
+          }
+          
+          echo "✅ All integration tests passed"
+
+  # Success notification
+  ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    needs: [security-gate, vulnerability-scan, cross-platform-test, installer-test, code-quality, integration-test]
+    if: success()
+    
+    steps:
+      - name: Success notification
+        run: |
+          echo "🎉 All CI/CD checks passed successfully!"
+          echo "✅ Security tests: PASSED"
+          echo "✅ Vulnerability scan: PASSED" 
+          echo "✅ Cross-platform tests: PASSED"
+          echo "✅ Installer tests: PASSED"
+          echo "✅ Code quality: PASSED"
+          echo "✅ Integration tests: PASSED"
+          echo ""
+          echo "🚀 Ready for deployment!"

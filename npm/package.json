@@ -1,0 +1,43 @@
+{
+  "name": "gemini-cli",
+  "version": "1.0.0",
+  "description": "Universal context usage analyzer for Gemini CLI - works from any directory in any project",
+  "main": "install.js",
+  "bin": {
+    "claude-context-install": "./install.js"
+  },
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "context",
+    "analyzer",
+    "token",
+    "usage",
+    "mcp",
+    "ai",
+    "development",
+    "tooling"
+  ],
+  "author": "Beaulewis1977",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Beaulewis1977/gemini-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Beaulewis1977/gemini-cli/issues"
+  },
+  "homepage": "https://github.com/Beaulewis1977/gemini-cli#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "install.js",
+    "../scripts/*",
+    "../commands/*"
+  ],
+  "preferGlobal": true
+}

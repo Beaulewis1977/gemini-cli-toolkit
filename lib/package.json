@@ -1,0 +1,25 @@
+{
+  "type": "module",
+  "name": "claude-code-context-lib",
+  "version": "1.0.0",
+  "description": "Security utilities library for Gemini CLI Context Command",
+  "main": "security.js",
+  "module": "security.js",
+  "exports": {
+    ".": {
+      "import": "./security.js",
+      "require": "./security.js",
+      "default": "./security.js"
+    },
+    "./security": {
+      "import": "./security.js",
+      "require": "./security.js",
+      "default": "./security.js"
+    },
+    "./security.js": {
+      "import": "./security.js",
+      "require": "./security.js",
+      "default": "./security.js"
+    }
+  }
+}

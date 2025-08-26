@@ -1,0 +1,16 @@
+{
+  "type": "module",
+  "name": "gemini-cli",
+  "version": "1.0.0",
+  "description": "A powerful, context-aware Gemini-powered command-line interface (CLI) for developers.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Beaulewis1977/gemini-cli.git"
+  },
+  "keywords": ["gemini", "cli", "ai", "developer", "tools"],
+  "author": "Gemini CLI Community",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

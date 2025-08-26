@@ -1,0 +1,41 @@
+# Gemini CLI Context Command - Code Owners
+# This file defines who owns different parts of the codebase
+# and who should review changes to specific files/directories
+
+# Global owners - require review for all changes
+* @gemini-cli-maintainers
+
+# Security-critical files - require security team review
+gemini-cli/lib/security.js @security-team @gemini-cli-maintainers
+gemini-cli/tests/security.test.js @security-team @gemini-cli-maintainers
+
+# Installation scripts - require platform-specific review
+gemini-cli/installers/ @platform-team @gemini-cli-maintainers
+gemini-cli/installers/install.sh @linux-team @macos-team
+gemini-cli/installers/install.ps1 @windows-team
+gemini-cli/installers/install-web.sh @linux-team @macos-team
+
+# Core analysis scripts - require core team review
+gemini-cli/scripts/context-analyzer.js @core-team @gemini-cli-maintainers
+gemini-cli/scripts/context-cmd.js @core-team @gemini-cli-maintainers
+
+# GitHub Actions workflows - require DevOps team review
+.github/workflows/ @devops-team @gemini-cli-maintainers
+.github/dependabot.yml @devops-team @gemini-cli-maintainers
+
+# Package configuration - require release team review  
+gemini-cli/scripts/package.json @release-team @gemini-cli-maintainers
+gemini-cli/npm/package.json @release-team @gemini-cli-maintainers
+
+# Documentation - require docs team review for significant changes
+*.md @docs-team
+gemini-cli/docs/ @docs-team
+gemini-cli/README.md @docs-team @gemini-cli-maintainers
+
+# Security and governance files - require security team review
+.github/SECURITY.md @security-team @gemini-cli-maintainers
+.github/CODEOWNERS @security-team @gemini-cli-maintainers
+LICENSE @legal-team @gemini-cli-maintainers
+
+# Examples and samples - less strict review requirements
+gemini-cli/examples/ @docs-team
