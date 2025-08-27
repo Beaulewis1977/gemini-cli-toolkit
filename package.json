@@ -7,10 +7,68 @@
     "type": "git",
     "url": "https://github.com/Beaulewis1977/gemini-cli.git"
   },
-  "keywords": ["gemini", "cli", "ai", "developer", "tools"],
+  "keywords": [
+    "gemini",
+    "cli",
+    "ai",
+    "developer",
+    "tools"
+  ],
   "author": "Gemini CLI Community",
   "license": "MIT",
   "engines": {
     "node": ">=16.0.0"
+  },
+  "scripts": {
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx,.mjs,.cjs",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx,.mjs,.cjs --fix",
+    "lint:docs": "markdownlint docs/**/*.md",
+    "lint:docs:fix": "markdownlint docs/**/*.md --fix",
+    "build": "echo 'Build complete - no compilation needed for JavaScript project'",
+    "build:clean": "tsc --build --clean",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit",
+    "prepare": "husky",
+    "pre-commit": "lint-staged",
+    "validate": "npm run lint && npm run test && npm run build"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.1.0",
+    "commander": "^11.0.0",
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-security": "^3.0.1",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "markdownlint-cli": "^0.41.0",
+    "prettier": "^3.3.3"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,mjs,cjs}": [
+      "eslint --fix",
+      "prettier --write",
+      "git add"
+    ],
+    "*.{json,yaml,yml}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.md": [
+      "markdownlint --fix",
+      "prettier --write",
+      "git add"
+    ]
   }
 }

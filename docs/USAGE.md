@@ -10,7 +10,7 @@ Once installed, use the `/context` command **before starting work** to understan
 
 ```
 /context                    # Compact (22 lines) - quick pre-work check
-/context standard          # Moderate (45 lines) - planning & optimization  
+/context standard          # Moderate (45 lines) - planning & optimization
 /context detailed          # Full (100+ lines) - deep analysis & troubleshooting
 ```
 
@@ -27,26 +27,29 @@ node ~/.gemini/scripts/context-cmd.js detailed     # Full analysis
 ## Understanding the Three Modes
 
 ### Compact Mode (`/context`)
+
 **Perfect for:** Quick pre-work checks
 **Output:** 22 lines that fit Gemini CLI display perfectly
 
 - Essential token breakdown with percentages
 - Top 3 MCP servers by usage
-- Top 3 agents in one line summary  
+- Top 3 agents in one line summary
 - Memory file size
 - Helpful hint about other modes
 
 ### Standard Mode (`/context standard`)
+
 **Perfect for:** Planning and optimization
 **Output:** ~45 lines with moderate detail
 
-- Complete token breakdown 
+- Complete token breakdown
 - Top 5 MCP servers with top 3 tools each
 - Top 5 custom agents listed individually
 - Detailed memory file information
 - Shows enough detail for optimization decisions
 
-### Detailed Mode (`/context detailed`) 
+### Detailed Mode (`/context detailed`)
+
 **Perfect for:** Deep analysis and troubleshooting
 **Output:** 100+ lines with beautiful progress bars
 
@@ -92,7 +95,7 @@ node ~/.gemini/scripts/context-cmd.js detailed     # Full analysis
    - Base Gemini CLI instructions
    - Fixed size, always present
 
-2. **System Tools** (~15.2k tokens)  
+2. **System Tools** (~15.2k tokens)
    - Built-in tools: Read, Write, Edit, Bash, etc.
    - Fixed size, always present
 
@@ -112,6 +115,7 @@ node ~/.gemini/scripts/context-cmd.js detailed     # Full analysis
 ### Detailed Breakdown Sections
 
 #### MCP Tools Section
+
 ```
      MCP tools • /mcp
      └ mcp__zen__chat (zen): 1234 tokens
@@ -124,6 +128,7 @@ node ~/.gemini/scripts/context-cmd.js detailed     # Full analysis
 - Helps identify high-usage MCP servers
 
 #### Custom Agents Section
+
 ```
      Custom agents • /agents
      └ system-integration-specialist (Project): 8234 tokens
@@ -135,6 +140,7 @@ node ~/.gemini/scripts/context-cmd.js detailed     # Full analysis
 - Helps identify large agent files
 
 #### Memory Files Section
+
 ```
      Memory files • /memory
      └ Project (/workspace/CLAUDE.md): 2543 tokens
@@ -148,8 +154,8 @@ node ~/.gemini/scripts/context-cmd.js detailed     # Full analysis
 
 ```
 Context Usage: 177k/200k tokens (89%)
-⛁ System: 23.7k (12.1%) ⛁ MCP: 135.6k (76.6%) 
-⛁ Agents: 15.2k (8.6%) ⛁ Memory: 2.5k (1.4%) 
+⛁ System: 23.7k (12.1%) ⛁ MCP: 135.6k (76.6%)
+⛁ Agents: 15.2k (8.6%) ⛁ Memory: 2.5k (1.4%)
 ⛁ Free: 23k (11.4%)
 ```
 
@@ -169,6 +175,7 @@ cd /path/to/your/project
 ```
 
 **What to look for:**
+
 - Overall context usage percentage
 - Unusually high MCP or agent usage
 - Free space remaining for conversation
@@ -182,6 +189,7 @@ cd /path/to/your/project
 ```
 
 **What to look for:**
+
 - MCP tools >100k tokens (consider reducing servers)
 - Large individual agents >10k tokens
 - Total usage >90% (near context limit)
@@ -195,6 +203,7 @@ cd /path/to/your/project
 ```
 
 **Benefits:**
+
 - Fast execution with caching
 - Minimal visual noise
 - Easy to scan multiple times
@@ -208,8 +217,9 @@ cd /path/to/your/project
 ```
 
 **Actions based on results:**
+
 - Disable unused MCP servers
-- Optimize large agent files  
+- Optimize large agent files
 - Clear unnecessary memory files
 - Review project configuration
 
@@ -222,12 +232,13 @@ cd /path/to/your/project
 cd ~/projects/project-a
 /context summary
 
-# Project B  
+# Project B
 cd ~/projects/project-b
 /context summary
 ```
 
 **Compare:**
+
 - Different MCP server configurations
 - Agent usage patterns
 - Memory file sizes
@@ -243,6 +254,7 @@ node ~/.gemini/scripts/context-cmd.js [mode]
 ```
 
 **Modes:**
+
 - `summary` - Condensed output
 - `standard` - Full analysis (default)
 - No argument - Same as standard
@@ -250,12 +262,14 @@ node ~/.gemini/scripts/context-cmd.js [mode]
 ### Environment Variables
 
 **Debug Mode:**
+
 ```bash
 export DEBUG=context-*
 /context
 ```
 
 **Custom Timeout:**
+
 ```bash
 export CONTEXT_TIMEOUT=15000  # 15 seconds
 /context
@@ -270,7 +284,7 @@ The analyzer automatically detects projects:
 cd /path/to/project/src/components
 /context  # Analyzes the project root configuration
 
-cd /path/to/project/docs  
+cd /path/to/project/docs
 /context  # Same project, same analysis
 
 cd /different/project
@@ -280,6 +294,7 @@ cd /different/project
 ### Integration with Scripts
 
 **Bash script integration:**
+
 ```bash
 #!/bin/bash
 cd /path/to/project
@@ -295,6 +310,7 @@ fi
 ```
 
 **PowerShell integration:**
+
 ```powershell
 # Get context analysis
 $context = & node $env:USERPROFILE\.gemini\scripts\context-cmd.js summary
@@ -313,6 +329,7 @@ if ($context -match "([0-9]+)%") {
 ### Healthy Context Distribution
 
 **Typical healthy project:**
+
 - System components: ~20-30% (fixed baseline)
 - MCP tools: ~40-60% (moderate server usage)
 - Custom agents: ~10-25% (project-specific)
@@ -322,33 +339,41 @@ if ($context -match "([0-9]+)%") {
 ### Warning Signs
 
 **High MCP Usage (>80%):**
+
 ```
 ⛁ MCP tools: 165.2k tokens (82.6%)
 ```
+
 - Too many enabled MCP servers
 - Consider disabling unused servers
 - Review server configurations
 
 **Large Agent Files (>20k each):**
+
 ```
 └ comprehensive-specialist (Project): 25234 tokens
 ```
+
 - Agent file is too large
 - Break into smaller, focused agents
 - Review agent content for redundancy
 
 **Near Context Limit (>95%):**
+
 ```
 claude-sonnet-4 • 195k/200k tokens (97%)
 ```
+
 - Very little room for conversation
 - Immediate optimization needed
 - Consider project restructuring
 
 **Memory File Bloat (>20%):**
+
 ```
 ⛁ Memory files: 45.2k tokens (22.6%)
 ```
+
 - CLAUDE.md file too large
 - Archive old conversations
 - Summarize and compress content
@@ -358,16 +383,19 @@ claude-sonnet-4 • 195k/200k tokens (97%)
 Based on analysis results, the tool provides specific recommendations:
 
 **High Impact Optimizations (>10% reduction):**
+
 - Disable unused MCP servers
 - Consolidate large agent files
 - Archive memory content
 
 **Medium Impact Optimizations (5-10% reduction):**
+
 - Review agent configurations
 - Clean up project-specific settings
 - Optimize memory file content
 
 **Low Impact Optimizations (<5% reduction):**
+
 - Fine-tune individual agent prompts
 - Remove redundant MCP tools
 - Clean up temporary context files
@@ -423,11 +451,13 @@ cd ~/current-project
 ### Cache Indicators
 
 **Using cached results:**
+
 ```
 ⚡ Using cached analysis (45s ago)
 ```
 
 **Fresh analysis:**
+
 ```
 ⚡ Analysis completed in 1.2s
 ```
@@ -444,7 +474,7 @@ cd ~/current-project
 - When debugging cache-related issues
 - For most accurate real-time analysis
 
-*Note: Currently no manual cache clear - wait 5 minutes or change directories*
+_Note: Currently no manual cache clear - wait 5 minutes or change directories_
 
 ## Troubleshooting Usage Issues
 
@@ -453,6 +483,7 @@ cd ~/current-project
 **Cause:** Not in a Gemini CLI project directory
 
 **Solution:**
+
 ```bash
 # Navigate to your project
 cd /path/to/claude/project
@@ -468,6 +499,7 @@ mkdir .gemini
 **Cause:** Cache showing stale data
 
 **Solution:**
+
 - Wait 5 minutes for cache expiration
 - Change directory and change back
 - Restart terminal session
@@ -477,6 +509,7 @@ mkdir .gemini
 **Cause:** Configuration not detected properly
 
 **Solution:**
+
 ```bash
 # Verify configuration files exist
 ls -la .gemini/settings.local.json  # MCP servers

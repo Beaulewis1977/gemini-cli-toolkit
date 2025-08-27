@@ -16,12 +16,14 @@ Common issues and solutions for the Gemini CLI Context Command.
    - Restart your terminal after installation
 
 2. **Verify installation:**
+
    ```bash
    node --version  # Should show v14.0.0 or later
    which node      # Should show path to node executable
    ```
 
 3. **Fix PATH issues (Linux/macOS):**
+
    ```bash
    # Add to ~/.bashrc or ~/.zshrc
    export PATH="$PATH:/usr/local/bin"
@@ -40,11 +42,13 @@ Common issues and solutions for the Gemini CLI Context Command.
 **Solutions:**
 
 1. **Fix script permissions:**
+
    ```bash
    chmod +x ~/.gemini/scripts/*.js
    ```
 
 2. **Fix directory permissions:**
+
    ```bash
    chmod 755 ~/.gemini
    chmod 755 ~/.gemini/scripts
@@ -52,10 +56,11 @@ Common issues and solutions for the Gemini CLI Context Command.
    ```
 
 3. **Check ownership:**
+
    ```bash
    ls -la ~/.gemini/
    # Should be owned by your user
-   
+
    # Fix ownership if needed:
    chown -R $USER:$USER ~/.gemini/
    ```
@@ -67,12 +72,14 @@ Common issues and solutions for the Gemini CLI Context Command.
 **Solutions:**
 
 1. **Check parent directory permissions:**
+
    ```bash
    ls -la ~/
    # Home directory should be writable
    ```
 
 2. **Create directory manually:**
+
    ```bash
    mkdir -p ~/.gemini/scripts ~/.gemini/commands
    ```
@@ -89,11 +96,13 @@ Common issues and solutions for the Gemini CLI Context Command.
 **Solutions:**
 
 1. **Check current policy:**
+
    ```powershell
    Get-ExecutionPolicy
    ```
 
 2. **Set policy to allow scripts:**
+
    ```powershell
    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
    ```
@@ -110,11 +119,13 @@ Common issues and solutions for the Gemini CLI Context Command.
 **Solutions:**
 
 1. **Use HTTPS instead of SSH:**
+
    ```bash
    git clone https://github.com/Beaulewis1977/gemini-cli.git
    ```
 
 2. **Download as ZIP:**
+
    ```bash
    wget https://github.com/Beaulewis1977/gemini-cli/archive/main.zip
    unzip main.zip
@@ -137,12 +148,14 @@ Common issues and solutions for the Gemini CLI Context Command.
 **Solutions:**
 
 1. **Navigate to a Gemini CLI project:**
+
    ```bash
    cd /path/to/your/claude/project
    ls -la .gemini/  # Should show project configuration
    ```
 
 2. **Verify you're in the right directory:**
+
    ```bash
    pwd  # Show current directory
    find . -name ".gemini" -type d  # Find .gemini directories
@@ -161,17 +174,20 @@ Common issues and solutions for the Gemini CLI Context Command.
 **Solutions:**
 
 1. **Use summary mode for faster analysis:**
+
    ```bash
    node ~/.gemini/scripts/context-cmd.js summary
    ```
 
 2. **Check for stuck processes:**
+
    ```bash
    ps aux | grep context  # Linux/macOS
    tasklist | findstr node  # Windows
    ```
 
 3. **Kill stuck processes:**
+
    ```bash
    pkill -f context-cmd  # Linux/macOS
    taskkill /f /im node.exe  # Windows (careful - kills all node processes)
@@ -191,16 +207,18 @@ Common issues and solutions for the Gemini CLI Context Command.
 **Solutions:**
 
 1. **Check Node.js version:**
+
    ```bash
    node --version  # Should be v14.0.0 or later
    ```
 
 2. **Reinstall files:**
+
    ```bash
    # Remove existing files
    rm ~/.gemini/scripts/context-*.js
    rm ~/.gemini/commands/context.md
-   
+
    # Reinstall
    cd gemini-cli
    ./installers/install.sh
@@ -220,12 +238,14 @@ Common issues and solutions for the Gemini CLI Context Command.
 **Solutions:**
 
 1. **Verify command file location:**
+
    ```bash
    ls -la ~/.gemini/commands/context.md
    # File should exist and be readable
    ```
 
 2. **Check file content:**
+
    ```bash
    head ~/.gemini/commands/context.md
    # Should start with "# Context Usage Analysis"
@@ -250,11 +270,13 @@ Common issues and solutions for the Gemini CLI Context Command.
 **Solutions:**
 
 1. **Use the simple analyzer:**
+
    ```bash
    node ~/.gemini/scripts/context-analyzer-simple.js
    ```
 
 2. **Check for large configuration files:**
+
    ```bash
    du -sh ~/.gemini/  # Check total size
    find .gemini -name "*.md" -exec wc -l {} +  # Find large files
@@ -271,15 +293,17 @@ Common issues and solutions for the Gemini CLI Context Command.
 **Solutions:**
 
 1. **Monitor memory usage:**
+
    ```bash
    # Linux/macOS
    top -p $(pgrep node)
-   
+
    # Windows
    taskmgr  # Task Manager, find node.exe processes
    ```
 
 2. **Use lighter analysis mode:**
+
    ```bash
    node ~/.gemini/scripts/context-cmd.js summary
    ```
@@ -295,25 +319,30 @@ Common issues and solutions for the Gemini CLI Context Command.
 ### Windows-Specific
 
 **"'node' is not recognized as an internal or external command"**
+
 - Add Node.js to PATH environment variable
 - Restart Command Prompt/PowerShell
 
 **"Access denied" on file operations**
+
 - Run PowerShell as Administrator for installation
 - Check Windows Defender isn't blocking files
 
 **PowerShell ISE compatibility issues**
+
 - Use regular PowerShell instead of ISE
 - Some Unicode characters may not display correctly in ISE
 
 ### macOS-Specific
 
 **"Operation not permitted" errors**
+
 - Check macOS security settings
 - Grant terminal access to required directories
 - Use `sudo` if necessary for directory creation
 
 **Homebrew Node.js issues**
+
 ```bash
 brew uninstall node
 brew install node@18  # Install specific version
@@ -322,10 +351,12 @@ brew install node@18  # Install specific version
 ### WSL-Specific
 
 **Mixed Windows/Linux paths**
+
 - Use Linux paths within WSL: `~/.gemini/`
 - Windows paths: `/mnt/c/Users/username/.gemini/`
 
 **Permission issues between Windows and WSL**
+
 ```bash
 # Fix permissions in WSL
 chmod -R 755 ~/.gemini/
@@ -334,12 +365,14 @@ chmod -R 755 ~/.gemini/
 ### Linux Distribution Issues
 
 **Ubuntu/Debian Node.js version too old**
+
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
 **CentOS/RHEL package manager**
+
 ```bash
 sudo dnf install nodejs npm
 # Or use NodeSource repository
@@ -354,12 +387,14 @@ sudo dnf install nodejs npm
 **Solutions:**
 
 1. **Check settings file:**
+
    ```bash
    ls -la .gemini/settings.local.json
    cat .gemini/settings.local.json  # Verify MCP server configuration
    ```
 
 2. **Verify JSON syntax:**
+
    ```bash
    node -e "JSON.parse(require('fs').readFileSync('.gemini/settings.local.json'))"
    ```
@@ -375,11 +410,13 @@ sudo dnf install nodejs npm
 **Solutions:**
 
 1. **Check agents directory:**
+
    ```bash
    ls -la .gemini/agents/
    ```
 
 2. **Verify agent file format:**
+
    ```bash
    head .gemini/agents/your-agent.md
    # Should have proper frontmatter with agent definition
@@ -399,17 +436,20 @@ sudo dnf install nodejs npm
 **Solutions:**
 
 1. **Check internet connectivity:**
+
    ```bash
    ping github.com
    ```
 
 2. **Try alternative download method:**
+
    ```bash
    # If curl fails, try wget
    wget -qO- https://raw.githubusercontent.com/Beaulewis1977/gemini-cli/main/installers/install-web.sh | bash
    ```
 
 3. **Use proxy if needed:**
+
    ```bash
    export HTTP_PROXY=http://proxy:port
    export HTTPS_PROXY=http://proxy:port
@@ -435,6 +475,7 @@ sudo dnf install nodejs npm
    - Just wait and try again
 
 2. **Force cache refresh:**
+
    ```bash
    # No direct cache clear command, but you can:
    # 1. Wait 5 minutes
@@ -456,18 +497,21 @@ sudo dnf install nodejs npm
 When reporting issues, please include:
 
 1. **System information:**
+
    ```bash
    uname -a  # Linux/macOS
    systeminfo  # Windows
    ```
 
 2. **Node.js version:**
+
    ```bash
    node --version
    npm --version
    ```
 
 3. **File verification:**
+
    ```bash
    ls -la ~/.gemini/scripts/
    ls -la ~/.gemini/commands/

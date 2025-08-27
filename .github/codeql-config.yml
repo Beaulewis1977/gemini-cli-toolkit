@@ -1,4 +1,4 @@
-name: "CodeQL Config for Gemini CLI Context Command"
+name: 'CodeQL Config for Gemini CLI Context Command'
 
 # Security-focused configuration for static analysis
 queries:
@@ -14,8 +14,8 @@ paths:
 # Ignore test files from certain checks to reduce noise
 paths-ignore:
   - tests/
-  - "**/node_modules/**"
-  - "**/*.md"
+  - '**/node_modules/**'
+  - '**/*.md'
 
 # Disable problematic queries that might cause false positives
 disable-default-queries: false
@@ -27,5 +27,5 @@ query-filters:
       id: js/unused-local-variable
       # Allow unused variables in test files
       paths:
-        - "**/*test*.js"
-        - "**/*spec*.js"
+        - '**/*test*.js'
+        - '**/*spec*.js'
