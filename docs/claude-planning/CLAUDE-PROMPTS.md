@@ -4,18 +4,21 @@
 **Date:** 2025-01-27  
 **Status:** Implementation Ready  
 **Alignment:** CLAUDE-BUILD-PLAN.md v2.0 MVP + CLAUDE-EPICS-AND-STORIES.md  
-**Philosophy:** Simple, Not Over-Engineered Solutions  
+**Philosophy:** Simple, Not Over-Engineered Solutions
 
 ---
 
 ## ⚠️ MANDATORY READING - DO NOT SKIP
-**EVERY AI AGENT MUST READ THIS ENTIRE SECTION BEFORE STARTING ANY EPIC**
+
+**Please ensure every AI agent reads this entire section before starting any epic**
 
 ### 🎯 Project Mission
+
 Build the **Gemini CLI AI Developer Toolkit** with 11 MVP commands in 6 weeks, then expand to 42+ commands. **Keep it simple** - no over-engineering, no unnecessary complexity.
 
 ### 📚 Required Reading Documents
-Before starting ANY epic, AI agents MUST read and understand:
+
+Before starting any epic, please ensure AI agents read and understand:
 
 1. **[CLAUDE-BUILD-PLAN.md](./CLAUDE-BUILD-PLAN.md)** - MVP scope and timeline
 2. **[CLAUDE-EPICS-AND-STORIES.md](./CLAUDE-EPICS-AND-STORIES.md)** - Complete feature breakdown
@@ -30,26 +33,33 @@ Before starting ANY epic, AI agents MUST read and understand:
 ## 🧠 Context Window Management Strategy
 
 ### One Epic per Session Rule
+
 - **Each prompt handles ONE epic only** (A1, B1, C1, D1, F1 for MVP)
 - **Maximum focus** - no jumping between epics
 - **Clear handoffs** between sessions with detailed summaries
 - **Validation checkpoints** before moving to next epic
 
 ### Required MCP Tools Usage
-## YOU MUST USE MCP SERVER TOOLS LIKE CONTEXT7, SEQUENTIAL THINKING, FETCH, AND OTHERS TO HELP YOURSELF, also use ultrathink when needed for confusing tasks
 
-## 📚 MANDATORY: Research Best Practices & Community Standards
-**Before implementing ANY feature, you MUST research and follow established patterns:**
+## Please Use MCP Server Tools for Enhanced Analysis
+
+It's highly recommended to use MCP server tools like Context7, Sequential Thinking, Fetch, and others to enhance your analysis capabilities. Consider using ultrathink when working on complex or confusing tasks.
+
+## 📚 Research Best Practices & Community Standards
+
+**Before implementing any feature, please ensure you research and follow established patterns:**
 
 **For Every Epic Implementation:**
-- 🧠 **mcp__sequential-thinking** - Complex problem analysis and step-by-step planning
-- 📖 **mcp__context7** - Library documentation and best practices research
-- 🌐 **mcp__fetch** / **WebFetch** - **OFFICIAL documentation and community standards**
-- 🔍 **mcp__brave-search** - **Current best practices, RFC standards, and community patterns**
+
+- 🧠 **mcp\_\_sequential-thinking** - Complex problem analysis and step-by-step planning
+- 📖 **mcp\_\_context7** - Library documentation and best practices research
+- 🌐 **mcp\_\_fetch** / **WebFetch** - **OFFICIAL documentation and community standards**
+- 🔍 **mcp\_\_brave-search** - **Current best practices, RFC standards, and community patterns**
 - 🛠️ **Task** agents - Specialized agents for specific tasks (security, testing, etc.)
 - 🔍 **USE PROBLEM-SOLVER-SPECIALIST AGENT** for any and all problems where you are stuck
 
 **🎯 Best Practices Research Requirements:**
+
 1. **Official Documentation First** - Always check official docs for libraries/frameworks
 2. **Community Standards** - Research established patterns in the relevant community
 3. **RFC Standards** - Follow industry RFCs and specifications where applicable
@@ -57,6 +67,7 @@ Before starting ANY epic, AI agents MUST read and understand:
 5. **Keep It Simple** - Choose simple, proven solutions over complex architectures
 
 **📋 Required Research Pattern for Every Feature:**
+
 ```bash
 1. Use sequential-thinking to break down the epic and identify research needs
 2. Use fetch to get OFFICIAL documentation for libraries/frameworks
@@ -68,6 +79,7 @@ Before starting ANY epic, AI agents MUST read and understand:
 ```
 
 **🔍 Specific Research Requirements:**
+
 - **CLI Libraries**: Research Commander.js, Yargs, Oclif official docs and patterns
 - **Testing**: Research Jest, Mocha community testing patterns and standards
 - **Security**: Research OWASP CLI security guidelines and NIST standards
@@ -80,6 +92,7 @@ Before starting ANY epic, AI agents MUST read and understand:
 ## 📋 Epic Summary System (MANDATORY)
 
 ### Summary Folder Structure
+
 ```
 epic-summaries/
 ├── EP-A1/                    # Core Code Understanding Epic
@@ -92,87 +105,108 @@ epic-summaries/
 ├── EP-B1/, EP-C1/, EP-D1/, EP-F1/  # Same structure for each epic
 ```
 
-### Mandatory Summary Rules
-1. **NO EPIC IS COMPLETE WITHOUT SUMMARIES** - This is non-negotiable
+### Summary Requirements
+
+1. **Summaries are Essential** - Please ensure all epics include complete summaries
 2. **Brevity is Critical** - Keep summaries short but comprehensive
 3. **Create Immediately** - Upon epic/sub-agent task completion
 4. **Sequential Naming** - Use numbers for multiple sub-agent summaries
 
 ### EPIC-SUMMARY.md Template (Main Agent)
+
 ```markdown
 # Epic [ID]: [Name] - Implementation Summary
+
 **Date:** [completion date] | **Duration:** [actual vs estimated] | **Status:** COMPLETE
 
 ## What Was Built
+
 - [Feature 1 with key details]
 - [Feature 2 with key details]
 - [Feature 3 with key details]
 
 ## Key Technical Decisions
+
 - [Decision 1]: [Rationale]
 - [Decision 2]: [Rationale]
 - [Decision 3]: [Rationale]
 
 ## Quality Metrics
+
 - Test Coverage: X%
 - Security Scan: Clean/[X issues]
 - Performance: Xs response time
 - Cross-Platform: ✅ Windows/macOS/Linux
 
 ## Challenges & Solutions
+
 1. **[Challenge]**: [How resolved]
 2. **[Challenge]**: [How resolved]
 
 ## Technical Debt / Watch-Outs
+
 [Any shortcuts or important notes for future]
 
 ## Files Created/Modified
+
 [Key files with brief descriptions]
 ```
 
 ### HANDOFF.md Template (Main Agent)
+
 ```markdown
 # Handoff to Epic [Next-ID]: [Next Epic Name]
 
 ## Critical Context for Next Epic
+
 1. [Key thing #1 next epic needs to know]
 2. [Key thing #2 next epic needs to know]
 3. [Key thing #3 next epic needs to know]
 
 ## Dependencies Created
+
 - [Component/Module]: [What it does, how next epic uses it]
 - [API/Interface]: [How to integrate with it]
 
 ## Architecture Decisions Impact
+
 - [Decision that affects next epic]
 - [Pattern established that should be followed]
 
 ## Watch Out For
+
 - [Gotcha #1]: [Why it matters]
 - [Gotcha #2]: [How to handle]
 ```
 
 ### Sub-Agent Summary Template
+
 ```markdown
 # Sub-Agent: [agent-name-task-number]
+
 **Agent:** [specific agent used] | **Task:** [what was done] | **Date:** [completion date]
 
 ## Task Result
+
 [Outcome in 1-2 sentences]
 
 ## Key Implementation
+
 - [Approach used]
 - [Key technical choice]
 
 ## Files Created/Modified
+
 - [file1.ts]: [brief description]
 - [file2.test.ts]: [brief description]
 
 ## Notes for Future Work
+
 [Any important context for later tasks]
 ```
 
 ### Summary Creation Workflow
+
 1. **Sub-agents**: Create summary immediately after completing task
 2. **Main agent**: Review all sub-agent summaries before creating EPIC-SUMMARY.md
 3. **Main agent**: Create HANDOFF.md with insights for next epic
@@ -183,13 +217,15 @@ epic-summaries/
 ## 🏗️ Epic Implementation Prompts
 
 ### Epic A1: Core Code Understanding (P0)
+
 **Duration:** 2-3 weeks | **Commands:** explain, debug, scaffold
 
 #### Phase 1: Foundation & Planning
+
 ```
 You are implementing Epic A1 (Core Code Understanding) for the Gemini CLI toolkit.
 
-MANDATORY FIRST STEPS:
+Required Initial Steps:
 1. Use sequential-thinking to analyze the epic requirements from CLAUDE-EPICS-AND-STORIES.md
 2. Use context7 to research AST parsing libraries for multiple languages
 3. Use fetch to get latest Gemini API documentation
@@ -218,7 +254,7 @@ DELIVERABLES:
 3. Security validation for all inputs
 4. Cross-platform compatibility verification
 5. Documentation aligned with CLAUDE-QUICK-START.md
-6. **MANDATORY**: Complete epic-summaries/EP-A1/ with EPIC-SUMMARY.md, HANDOFF.md, and all SUB-AGENTS/ summaries
+6. **Essential**: Complete epic-summaries/EP-A1/ with EPIC-SUMMARY.md, HANDOFF.md, and all SUB-AGENTS/ summaries
 
 USE MCP TOOLS EXTENSIVELY - FOLLOW BEST PRACTICES RESEARCH PATTERN:
 - sequential-thinking for complex problem breakdown and research planning
@@ -232,13 +268,15 @@ CHECKPOINT: Before marking complete, validate all acceptance criteria from CLAUD
 ```
 
 ### Epic B1: Core Documentation Generation (P0)
+
 **Duration:** 2-3 weeks | **Commands:** docstring, readme, wiki
 
 #### Phase 1: Documentation System Design
+
 ```
 You are implementing Epic B1 (Core Documentation Generation) for the Gemini CLI toolkit.
 
-MANDATORY FIRST STEPS:
+Required Initial Steps:
 1. Use sequential-thinking to plan the documentation generation architecture
 2. Use context7 to research JSDoc, Python docstrings, and documentation generation tools
 3. Use fetch to get examples of high-quality README templates
@@ -281,19 +319,21 @@ DELIVERABLES:
 3. Template system with customization
 4. Integration tests with real repositories
 5. Performance benchmarks (handle large codebases)
-6. **MANDATORY**: Complete epic-summaries/EP-B1/ with EPIC-SUMMARY.md, HANDOFF.md, and all SUB-AGENTS/ summaries
+6. **Essential**: Complete epic-summaries/EP-B1/ with EPIC-SUMMARY.md, HANDOFF.md, and all SUB-AGENTS/ summaries
 
 VALIDATION CHECKPOINT: All acceptance criteria from CLAUDE-EPICS-AND-STORIES.md B1.1-B1.3 must be verified complete.
 ```
 
 ### Epic C1: Test Generation and Analysis (P0)
+
 **Duration:** 2-3 weeks | **Commands:** testgen
 
 #### Phase 1: Testing Framework Integration
+
 ```
 You are implementing Epic C1 (Test Generation and Analysis) for the Gemini CLI toolkit.
 
-MANDATORY PREPARATION:
+Required Preparation:
 1. Use sequential-thinking to analyze testing framework landscape
 2. Use context7 to research Jest, Mocha, PyTest, JUnit integration patterns
 3. Use fetch to get latest testing framework documentation
@@ -319,7 +359,7 @@ IMPLEMENTATION STRATEGY:
 - Respect BRANCHING_AND_VERSIONING.md git workflow
 
 TECHNICAL REQUIREMENTS:
-- AST parsing for test target identification  
+- AST parsing for test target identification
 - Framework detection from package.json/requirements.txt
 - Realistic test data generation
 - Mock object creation for dependencies
@@ -339,15 +379,17 @@ SUCCESS CRITERIA:
 3. Include security validation tests
 4. Support cross-platform test execution
 5. Integration with CI/CD pipeline from CLAUDE-CICD-PLAN.md
-6. **MANDATORY**: Complete epic-summaries/EP-C1/ with EPIC-SUMMARY.md, HANDOFF.md, and all SUB-AGENTS/ summaries
+6. **Essential**: Complete epic-summaries/EP-C1/ with EPIC-SUMMARY.md, HANDOFF.md, and all SUB-AGENTS/ summaries
 
 CHECKPOINT: Validate all story acceptance criteria from CLAUDE-EPICS-AND-STORIES.md C1.1 are complete.
 ```
 
 ### Epic D1: Git Workflow Automation (P0)
+
 **Duration:** 1-2 weeks | **Commands:** commit, pr-description
 
 #### Phase 1: Git Integration
+
 ```
 You are implementing Epic D1 (Git Workflow Automation) for the Gemini CLI toolkit.
 
@@ -396,15 +438,17 @@ DELIVERABLES:
 3. Multiple commit convention support
 4. Integration with popular git platforms
 5. Interactive CLI workflows
-6. **MANDATORY**: Complete epic-summaries/EP-D1/ with EPIC-SUMMARY.md, HANDOFF.md, and all SUB-AGENTS/ summaries
+6. **Essential**: Complete epic-summaries/EP-D1/ with EPIC-SUMMARY.md, HANDOFF.md, and all SUB-AGENTS/ summaries
 
 VALIDATION: All acceptance criteria from CLAUDE-EPICS-AND-STORIES.md D1.1 and D1.3 must be verified.
 ```
 
 ### Epic F1: Custom Command System (P0)
+
 **Duration:** 1-2 weeks | **Commands:** run, context
 
 #### Phase 1: Command Framework
+
 ```
 You are implementing Epic F1 (Custom Command System) for the Gemini CLI toolkit.
 
@@ -441,7 +485,7 @@ TECHNICAL SPECIFICATIONS:
 
 SECURITY REQUIREMENTS:
 - Command injection prevention
-- Path traversal protection  
+- Path traversal protection
 - Input sanitization for custom scripts
 - Secure execution sandboxing
 - Audit logging for custom command execution
@@ -460,7 +504,7 @@ SUCCESS METRICS:
 3. Context analysis provides actionable insights
 4. Integration with subscription tier system
 5. Performance meets <2 second response time requirement
-6. **MANDATORY**: Complete epic-summaries/EP-F1/ with EPIC-SUMMARY.md, HANDOFF.md, and all SUB-AGENTS/ summaries
+6. **Essential**: Complete epic-summaries/EP-F1/ with EPIC-SUMMARY.md, HANDOFF.md, and all SUB-AGENTS/ summaries
 
 FINAL CHECKPOINT: Validate all F1.1-F1.2 acceptance criteria from CLAUDE-EPICS-AND-STORIES.md are complete.
 ```
@@ -469,8 +513,9 @@ FINAL CHECKPOINT: Validate all F1.1-F1.2 acceptance criteria from CLAUDE-EPICS-A
 
 ## 🔒 Security-First Implementation Requirements
 
-### Mandatory Security Checklist (ALL EPICS)
-Before marking any epic complete, validate:
+### Security Checklist (ALL EPICS)
+
+Before marking any epic complete, please ensure you validate:
 
 - [ ] **Input Validation**: All user inputs validated per CLAUDE-SECURITY-ARCHITECTURE.md
 - [ ] **Command Injection Prevention**: No shell injection vulnerabilities
@@ -480,6 +525,7 @@ Before marking any epic complete, validate:
 - [ ] **Cross-Platform Security**: Security measures work on all platforms
 
 ### Security Testing Requirements
+
 - [ ] Use security-scanner agent for vulnerability assessment
 - [ ] Implement security tests from CLAUDE-TDD-STRATEGY.md
 - [ ] Validate against OWASP Top 10 for CLI applications
@@ -491,6 +537,7 @@ Before marking any epic complete, validate:
 ## 🧪 Quality Assurance Standards
 
 ### Testing Requirements (ALL EPICS)
+
 - [ ] **Unit Tests**: >95% code coverage per CLAUDE-TDD-STRATEGY.md
 - [ ] **Integration Tests**: All API integrations tested
 - [ ] **Security Tests**: 100% coverage of security-critical functions
@@ -498,6 +545,7 @@ Before marking any epic complete, validate:
 - [ ] **Performance Tests**: <2 second response time validated
 
 ### Code Quality Gates
+
 - [ ] **TypeScript Strict**: Zero `any` types per CLAUDE-CODING-STANDARDS.md
 - [ ] **ESLint Clean**: Zero linting errors
 - [ ] **Security Scan Clean**: Zero high/critical vulnerabilities
@@ -509,6 +557,7 @@ Before marking any epic complete, validate:
 ## 📋 Epic Handoff Documentation
 
 ### Epic Completion Checklist
+
 When completing an epic, provide:
 
 1. **Implementation Summary**: What was built and how
@@ -519,28 +568,34 @@ When completing an epic, provide:
 6. **Next Epic Recommendations**: Insights for following epics
 
 ### Epic Completion Template
+
 ```markdown
 # Epic [ID] Implementation Complete
 
 ## Summary
+
 [Brief description of what was implemented]
 
 ## Architecture
+
 [Key technical decisions and rationale]
 
 ## Security Validation
+
 - [ ] All inputs validated and sanitized
 - [ ] No command injection vulnerabilities
 - [ ] Secure credential handling implemented
 - [ ] Cross-platform security verified
 
 ## Quality Metrics
+
 - Test Coverage: [percentage]%
 - Performance: [response times]
 - Security Scan: [clean/issues found]
 - Cross-Platform: [status on Windows/macOS/Linux]
 
 ## Handoff Notes
+
 [Important information for next epic implementation]
 ```
 
@@ -549,7 +604,9 @@ When completing an epic, provide:
 ## 🎯 Success Criteria & Validation
 
 ### MVP Completion Criteria
+
 All MVP epics (A1, B1, C1, D1, F1) must achieve:
+
 - [ ] **Functionality**: All acceptance criteria met
 - [ ] **Security**: Zero high/critical vulnerabilities
 - [ ] **Performance**: <2 second response times
@@ -558,9 +615,11 @@ All MVP epics (A1, B1, C1, D1, F1) must achieve:
 - [ ] **Documentation**: Complete user and developer docs
 
 ### Post-MVP Expansion Criteria
+
 For additional epics (A2, B2, C2, D2, E1, E2, F2):
+
 - [ ] **Integration**: Seamless integration with MVP commands
-- [ ] **Scalability**: Handle large codebases efficiently  
+- [ ] **Scalability**: Handle large codebases efficiently
 - [ ] **User Experience**: Intuitive and consistent interface
 - [ ] **Enterprise Ready**: Support for enterprise requirements
 - [ ] **Maintainable**: Clear architecture for future development
@@ -570,21 +629,25 @@ For additional epics (A2, B2, C2, D2, E1, E2, F2):
 ## 🚀 Implementation Timeline
 
 ### Week 1-2: Epic A1 (Core Code Understanding)
+
 - Set up project foundation and security architecture
 - Implement explain, debug, scaffold commands
 - Establish testing and CI/CD pipeline
 
 ### Week 3-4: Epic B1 (Core Documentation) + Epic C1 (Test Generation)
+
 - Parallel implementation of documentation and testing commands
 - Integration testing between commands
 - Performance optimization
 
 ### Week 5-6: Epic D1 (Git Workflow) + Epic F1 (Custom Commands)
+
 - Git integration and custom command system
 - Final MVP integration testing
 - Production readiness validation
 
 ### Post-MVP: Advanced Features
+
 - Continue with remaining epics based on user feedback
 - Scale system for enterprise requirements
 - Add advanced AI capabilities
@@ -594,6 +657,7 @@ For additional epics (A2, B2, C2, D2, E1, E2, F2):
 ## 🔧 Development Guidelines
 
 ### Keep It Simple Philosophy
+
 - **No Over-Engineering**: Choose simple, proven solutions over complex architectures
 - **Minimal Dependencies**: Only include essential dependencies
 - **Clear Interfaces**: Simple, intuitive command interfaces
@@ -601,6 +665,7 @@ For additional epics (A2, B2, C2, D2, E1, E2, F2):
 - **Practical Solutions**: Focus on solving real developer problems
 
 ### Technical Constraints
+
 - **Performance**: <2 second response for most commands
 - **Memory**: <512MB typical usage
 - **Dependencies**: Minimal dependency footprint

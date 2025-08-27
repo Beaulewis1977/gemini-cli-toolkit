@@ -23,6 +23,7 @@ Thanks for your interest in contributing! 🎉 This project helps Gemini CLI use
 ### Development Setup
 
 1. **Fork the repository**
+
    ```bash
    # Click "Fork" on GitHub, then clone your fork
    git clone https://github.com/YOUR-USERNAME/gemini-cli.git
@@ -30,6 +31,7 @@ Thanks for your interest in contributing! 🎉 This project helps Gemini CLI use
    ```
 
 2. **Create a development branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    # or
@@ -37,20 +39,22 @@ Thanks for your interest in contributing! 🎉 This project helps Gemini CLI use
    ```
 
 3. **Set up development environment**
+
    ```bash
    # Create symlinks for testing (Linux/macOS)
    ln -sf "$(pwd)/scripts/context-cmd.js" ~/.gemini/scripts/context-cmd-dev.js
    ln -sf "$(pwd)/commands/context.md" ~/.gemini/commands/context-dev.md
-   
+
    # Windows (PowerShell as Administrator)
    New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.gemini\scripts\context-cmd-dev.js" -Target "$(pwd)\scripts\context-cmd.js"
    ```
 
 4. **Test your setup**
+
    ```bash
    # Test the analyzer directly
    node scripts/context-analyzer.js summary
-   
+
    # Test the command wrapper
    node scripts/context-cmd.js
    ```
@@ -60,6 +64,7 @@ Thanks for your interest in contributing! 🎉 This project helps Gemini CLI use
 ### Code Style
 
 **JavaScript:**
+
 - Use ES6+ features (import/export, async/await, etc.)
 - 2-space indentation
 - Semicolons required
@@ -67,12 +72,14 @@ Thanks for your interest in contributing! 🎉 This project helps Gemini CLI use
 - JSDoc comments for functions
 
 **Shell Scripts:**
+
 - Use `#!/bin/bash` for cross-platform compatibility
 - Set `set -euo pipefail` for error handling
 - Quote variables: `"$variable"`
 - Use functions for reusable code
 
 **Example JavaScript:**
+
 ```javascript
 /**
  * Analyzes MCP server token usage
@@ -84,7 +91,7 @@ async function analyzeMcpServer(serverConfig) {
   return {
     serverName: serverConfig.name,
     totalTokens: calculateTokens(tools),
-    toolCount: tools.length
+    toolCount: tools.length,
   };
 }
 ```
@@ -95,7 +102,7 @@ async function analyzeMcpServer(serverConfig) {
 gemini-cli/
 ├── scripts/
 │   ├── context-analyzer.js      # Main analysis engine
-│   ├── context-analyzer-simple.js  # Lightweight version  
+│   ├── context-analyzer-simple.js  # Lightweight version
 │   ├── context-cmd.js           # Command wrapper
 │   └── package.json             # Module config
 ├── commands/
@@ -124,6 +131,7 @@ type(scope): description
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -138,6 +146,7 @@ type(scope): description
 ### Manual Testing
 
 **Test all platforms:**
+
 ```bash
 # Test installation scripts
 ./installers/install.sh          # Linux/macOS/WSL
@@ -149,6 +158,7 @@ cd /path/to/complex-project && node ~/.gemini/scripts/context-cmd.js summary
 ```
 
 **Test edge cases:**
+
 - Projects without `.gemini` directory
 - Large MCP server configurations
 - Empty or missing configuration files
@@ -170,11 +180,13 @@ npm run test:cross-platform # Platform-specific tests
 ## 🐛 Bug Reports
 
 **Before submitting:**
+
 1. Check [existing issues](https://github.com/Beaulewis1977/gemini-cli/issues)
 2. Test with the latest version
 3. Try reproducing in a clean environment
 
 **Include in your report:**
+
 - **System info**: OS, Node.js version, Gemini CLI version
 - **Steps to reproduce**: Detailed steps
 - **Expected behavior**: What should happen
@@ -183,27 +195,34 @@ npm run test:cross-platform # Platform-specific tests
 - **Context configuration**: Anonymized `.gemini` directory structure
 
 **Template:**
+
 ```markdown
 ## Bug Description
+
 Brief description of the issue
 
 ## Environment
+
 - OS: [Windows 11 / macOS 13 / Ubuntu 22.04 / WSL2]
 - Node.js: [version]
 - Gemini CLI: [version]
 
 ## Steps to Reproduce
+
 1. Navigate to project directory
 2. Run `/context` command
 3. Observe error
 
 ## Expected Behavior
+
 Context analysis should display token breakdown
 
 ## Actual Behavior
+
 Error message: "Cannot read property..."
 
 ## Additional Context
+
 - Project has 15 MCP servers configured
 - Large CLAUDE.md file (50k+ tokens)
 - Error started after recent Gemini CLI update
@@ -212,14 +231,16 @@ Error message: "Cannot read property..."
 ## 💡 Feature Requests
 
 **Good feature requests include:**
+
 - **Clear use case**: Why is this needed?
 - **Proposed solution**: How should it work?
 - **Alternatives considered**: Other approaches
 - **Implementation ideas**: Technical details if you have them
 
 **Examples of welcome features:**
+
 - New output formats (JSON, CSV, etc.)
-- Additional optimization recommendations  
+- Additional optimization recommendations
 - Integration with other Gemini CLI features
 - Performance improvements
 - Better error handling
@@ -239,26 +260,31 @@ Error message: "Cannot read property..."
 
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change)
-- [ ] New feature (non-breaking change)  
+- [ ] New feature (non-breaking change)
 - [ ] Breaking change (existing functionality changes)
 - [ ] Documentation update
 
 ## Testing
+
 - [ ] Tested on Linux/macOS
-- [ ] Tested on Windows  
+- [ ] Tested on Windows
 - [ ] Tested with minimal Claude project
 - [ ] Tested with complex Claude project
 - [ ] Manual testing completed
 - [ ] All existing functionality works
 
 ## Screenshots (if applicable)
+
 Before/after screenshots of output changes
 
 ## Checklist
+
 - [ ] Code follows project style guidelines
 - [ ] Self-review completed
 - [ ] Documentation updated
@@ -277,18 +303,21 @@ Before/after screenshots of output changes
 ## 📚 Areas Needing Help
 
 **High Priority:**
+
 - **Cross-platform testing**: Especially Windows PowerShell edge cases
 - **Performance optimization**: Large project analysis
 - **Error handling**: Better error messages and recovery
 - **Documentation**: More examples and troubleshooting
 
 **Medium Priority:**
+
 - **Automated testing**: Unit and integration tests
 - **New output formats**: JSON export, CSV reports
 - **Configuration validation**: Better config file checking
 - **Caching improvements**: More intelligent cache invalidation
 
 **Low Priority:**
+
 - **UI enhancements**: Better progress indicators
 - **Plugin system**: Extensible analysis modules
 - **Integration**: Other Gemini CLI tools
@@ -297,21 +326,25 @@ Before/after screenshots of output changes
 ## 🎨 Design Principles
 
 **Keep it simple:**
+
 - Single-purpose tool focused on context analysis
 - Easy installation and setup
 - Minimal dependencies
 
 **Make it reliable:**
+
 - Graceful error handling
 - Fallback behaviors when analysis fails
 - Consistent cross-platform behavior
 
 **Prioritize performance:**
+
 - Fast analysis even for large projects
 - Intelligent caching
 - Timeout protection
 
 **Stay user-focused:**
+
 - Clear, actionable output
 - Helpful error messages
 - Good documentation
@@ -326,6 +359,7 @@ Before/after screenshots of output changes
 - **Documentation**: Check [docs/](docs/) directory
 
 **For major changes:**
+
 - Open an issue first to discuss the approach
 - Get feedback before writing lots of code
 - Consider breaking large changes into smaller PRs
@@ -333,16 +367,19 @@ Before/after screenshots of output changes
 ## 📄 Code of Conduct
 
 **Be respectful:**
+
 - Welcoming to contributors of all experience levels
 - Constructive feedback only
 - Focus on the code, not the person
 
 **Be helpful:**
+
 - Patient with questions
 - Share knowledge and best practices
 - Help others learn
 
 **Be collaborative:**
+
 - Open to different approaches
 - Willing to compromise
 - Credit others for their contributions
@@ -350,6 +387,7 @@ Before/after screenshots of output changes
 ## 🎉 Recognition
 
 Contributors are recognized in:
+
 - **GitHub contributors list**
 - **Release notes** for significant contributions
 - **README acknowledgments** for major features

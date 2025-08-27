@@ -7,6 +7,7 @@ Complete guide for installing the Gemini CLI Context Command on all supported pl
 For most users, we recommend the **Quick Install** method:
 
 **Linux/macOS/WSL:**
+
 ```bash
 git clone https://github.com/Beaulewis1977/gemini-cli.git
 cd gemini-cli
@@ -14,6 +15,7 @@ cd gemini-cli
 ```
 
 **Windows PowerShell:**
+
 ```powershell
 git clone https://github.com/Beaulewis1977/gemini-cli.git
 cd gemini-cli
@@ -94,24 +96,27 @@ curl -sSL https://raw.githubusercontent.com/Beaulewis1977/gemini-cli/main/instal
 ```
 
 **Alternative with wget:**
+
 ```bash
 wget -qO- https://raw.githubusercontent.com/Beaulewis1977/gemini-cli/main/installers/install-web.sh | bash
 ```
 
 #### What happens:
+
 1. Downloads the web installer script
 2. Downloads all required files from GitHub
 3. Installs to `~/.gemini/` directories
 4. Tests the installation
 
 #### Security considerations:
+
 - Only run if you trust the source
 - You can inspect the script first: `curl -s [URL]` to view before piping to bash
 - The script downloads files from the official GitHub repository
 
 ### Method 3: NPM Global Package
 
-*Note: This method will be available after the initial repository is published to npm.*
+_Note: This method will be available after the initial repository is published to npm._
 
 ```bash
 # Install globally
@@ -121,13 +126,15 @@ npm install -g gemini-cli
 ```
 
 **Manual trigger if needed:**
+
 ```bash
 claude-context-install
 ```
 
 #### NPM method benefits:
+
 - ✅ Easy updates via `npm update -g`
-- ✅ Automatic dependency management  
+- ✅ Automatic dependency management
 - ✅ Standard Node.js package management
 - ✅ Version control and rollback
 
@@ -149,12 +156,14 @@ New-Item -ItemType Directory -Path "$env:USERPROFILE\.gemini\commands" -Force
 #### Step 2: Download files
 
 **Option A: Git clone**
+
 ```bash
 git clone https://github.com/Beaulewis1977/gemini-cli.git
 cd gemini-cli
 ```
 
 **Option B: Download specific files**
+
 ```bash
 # Create temporary directory
 mkdir temp-context-install
@@ -176,7 +185,7 @@ cp scripts/*.js ~/.gemini/scripts/
 cp scripts/package.json ~/.gemini/scripts/
 cp commands/context.md ~/.gemini/commands/
 
-# Windows (PowerShell) 
+# Windows (PowerShell)
 Copy-Item scripts\*.js $env:USERPROFILE\.gemini\scripts\
 Copy-Item scripts\package.json $env:USERPROFILE\.gemini\scripts\
 Copy-Item commands\context.md $env:USERPROFILE\.gemini\commands\
@@ -208,12 +217,14 @@ node $env:USERPROFILE\.gemini\scripts\context-cmd.js summary
    - Create your own repository copy
 
 2. **Clone Your Copy:**
+
    ```bash
    git clone https://github.com/YOURUSERNAME/gemini-cli.git
    cd gemini-cli
    ```
 
 3. **Install:**
+
    ```bash
    ./installers/install.sh  # Linux/macOS/WSL
    .\installers\install.ps1  # Windows PowerShell
@@ -230,33 +241,39 @@ node $env:USERPROFILE\.gemini\scripts\context-cmd.js summary
 
 **PowerShell Execution Policy:**
 If you get execution policy errors:
+
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
 **Windows Subsystem for Linux (WSL):**
+
 - Use the Linux installation method within WSL
 - Scripts work normally in WSL environment
 - Full compatibility with WSL1 and WSL2
 
 **Git Bash:**
+
 - Use the Linux/macOS installation method
 - Bash scripts work in Git Bash environment
 
 ### macOS
 
 **Homebrew Node.js:**
+
 ```bash
 brew install node
 ```
 
 **macOS Catalina+ Security:**
+
 - You may need to allow unsigned scripts to execute
 - Go to System Preferences > Security & Privacy if prompted
 
 ### Linux
 
 **Ubuntu/Debian:**
+
 ```bash
 # Install Node.js
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
@@ -267,12 +284,14 @@ sudo apt-get install git
 ```
 
 **CentOS/RHEL/Fedora:**
+
 ```bash
 # Install Node.js
 sudo dnf install nodejs npm git
 ```
 
 **Arch Linux:**
+
 ```bash
 sudo pacman -S nodejs npm git
 ```
@@ -284,9 +303,10 @@ After installation, verify everything works correctly:
 ### 1. Check File Locations
 
 **Files should exist at:**
+
 ```bash
 ~/.gemini/scripts/context-cmd.js
-~/.gemini/scripts/context-analyzer.js  
+~/.gemini/scripts/context-analyzer.js
 ~/.gemini/scripts/context-analyzer-simple.js
 ~/.gemini/scripts/package.json
 ~/.gemini/commands/context.md
@@ -295,6 +315,7 @@ After installation, verify everything works correctly:
 ### 2. Test Command Execution
 
 **Direct execution:**
+
 ```bash
 node ~/.gemini/scripts/context-cmd.js summary
 ```
@@ -304,6 +325,7 @@ node ~/.gemini/scripts/context-cmd.js summary
 ### 3. Test Gemini CLI Integration
 
 **In Gemini CLI session:**
+
 ```
 /context
 ```
@@ -322,6 +344,7 @@ ls -la ~/.gemini/scripts/
 ### Common Installation Issues
 
 **"Node.js not found"**
+
 ```bash
 # Install Node.js from https://nodejs.org/
 # Restart your terminal after installation
@@ -329,6 +352,7 @@ which node  # Should show path
 ```
 
 **"Permission denied" (Linux/macOS/WSL)**
+
 ```bash
 # Fix script permissions
 chmod +x ~/.gemini/scripts/*.js
@@ -338,6 +362,7 @@ ls -la ~/.gemini/
 ```
 
 **"Cannot create directory"**
+
 ```bash
 # Check if ~/.gemini exists and is writable
 ls -la ~/
@@ -345,6 +370,7 @@ mkdir -p ~/.gemini  # Create if missing
 ```
 
 **Git clone fails**
+
 ```bash
 # Use HTTPS instead of SSH
 git clone https://github.com/Beaulewis1977/gemini-cli.git
@@ -354,6 +380,7 @@ wget https://github.com/Beaulewis1977/gemini-cli/archive/main.zip
 ```
 
 **Windows PowerShell execution policy**
+
 ```powershell
 # Check current policy
 Get-ExecutionPolicy
@@ -365,6 +392,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### Installation Cleanup
 
 **If installation fails, clean up:**
+
 ```bash
 # Remove incomplete installation
 rm -rf ~/.gemini/scripts/context-*
@@ -396,7 +424,7 @@ Install only specific components:
 # Scripts only (no slash command)
 cp scripts/* ~/.gemini/scripts/
 
-# Command only (no scripts)  
+# Command only (no scripts)
 cp commands/context.md ~/.gemini/commands/
 ```
 

@@ -5,17 +5,18 @@
 **Status:** Implementation Specification  
 **Alignment:** CLAUDE-BUILD-PLAN.md v2.0  
 **Platform Support:** Windows, macOS, Linux  
-**API Version:** Gemini 2.5 Series  
+**API Version:** Gemini 2.5 Series
 
 ---
 
 ## 🎯 MVP Implementation Focus
 
 > **Implementation Priority**: This technical specification covers the complete 42+ command toolkit. For **MVP development**, implement specifications for the **11 essential commands** outlined in [CLAUDE-BUILD-PLAN.md](./CLAUDE-BUILD-PLAN.md):
-> 
+>
 > **MVP Command Subset**: explain, debug, scaffold, docstring, readme, wiki, commit, pr-description, testgen, run, context
-> 
+>
 > **🔒 Security-First Implementation**:
+>
 > - All security specifications are **mandatory** for MVP
 > - Input validation, authentication, and encryption are non-negotiable
 > - Fail secure, audit everything, principle of least privilege
@@ -59,25 +60,25 @@ This document provides the complete technical specifications for the Gemini CLI 
 
 #### Minimum System Requirements
 
-| Component | Windows | macOS | Linux |
-|-----------|---------|-------|--------|
-| **OS Version** | Windows 10 1903+ | macOS 11.0+ | Ubuntu 20.04+ / RHEL 8+ |
-| **Node.js** | 18.0.0+ | 18.0.0+ | 18.0.0+ |
-| **RAM** | 4 GB | 4 GB | 4 GB |
-| **Disk Space** | 500 MB | 500 MB | 500 MB |
-| **Network** | Broadband Internet | Broadband Internet | Broadband Internet |
-| **Shell** | PowerShell 7+ / CMD | zsh / bash | bash / zsh |
+| Component      | Windows             | macOS              | Linux                   |
+| -------------- | ------------------- | ------------------ | ----------------------- |
+| **OS Version** | Windows 10 1903+    | macOS 11.0+        | Ubuntu 20.04+ / RHEL 8+ |
+| **Node.js**    | 18.0.0+             | 18.0.0+            | 18.0.0+                 |
+| **RAM**        | 4 GB                | 4 GB               | 4 GB                    |
+| **Disk Space** | 500 MB              | 500 MB             | 500 MB                  |
+| **Network**    | Broadband Internet  | Broadband Internet | Broadband Internet      |
+| **Shell**      | PowerShell 7+ / CMD | zsh / bash         | bash / zsh              |
 
 #### Recommended System Requirements
 
-| Component | Windows | macOS | Linux |
-|-----------|---------|-------|--------|
-| **OS Version** | Windows 11 | macOS 13.0+ | Ubuntu 22.04+ |
-| **Node.js** | 20.0.0+ | 20.0.0+ | 20.0.0+ |
-| **RAM** | 8 GB | 8 GB | 8 GB |
-| **Disk Space** | 2 GB | 2 GB | 2 GB |
-| **CPU** | 4+ cores | 4+ cores | 4+ cores |
-| **GPU** | Optional (for ML features) | Optional | Optional |
+| Component      | Windows                    | macOS       | Linux         |
+| -------------- | -------------------------- | ----------- | ------------- |
+| **OS Version** | Windows 11                 | macOS 13.0+ | Ubuntu 22.04+ |
+| **Node.js**    | 20.0.0+                    | 20.0.0+     | 20.0.0+       |
+| **RAM**        | 8 GB                       | 8 GB        | 8 GB          |
+| **Disk Space** | 2 GB                       | 2 GB        | 2 GB          |
+| **CPU**        | 4+ cores                   | 4+ cores    | 4+ cores      |
+| **GPU**        | Optional (for ML features) | Optional    | Optional      |
 
 ### 2. Development Requirements
 
@@ -100,6 +101,7 @@ This document provides the complete technical specifications for the Gemini CLI 
 {
   "dependencies": {
     "@google/generative-ai": "^1.0.0",
+    "@anthropic-ai/tokenizer": "^0.2.0",
     "commander": "^11.1.0",
     "toml": "^3.0.0",
     "chalk": "^5.3.0",
@@ -157,6 +159,9 @@ This document provides the complete technical specifications for the Gemini CLI 
 #### 1.1 Authentication Specification
 
 ```typescript
+// Subscription tier type definition
+type SubscriptionTier = 'free' | 'pro' | 'enterprise';
+
 interface AuthenticationConfig {
   method: 'gemini-subscription' | 'api-key' | 'oauth2' | 'service-account';
   credentials: AuthCredentials;
@@ -168,15 +173,15 @@ interface AuthCredentials {
   geminiSubscription?: {
     googleClientId: string;
     scope: string[];
-    subscriptionTier: 'free' | 'pro' | 'ultra';
+    subscriptionTier: 'free' | 'pro' | 'enterprise';
     refreshToken?: string;
     accessToken?: string;
     expiresAt?: number;
   };
-  
+
   // Direct API Key (Advanced users)
   apiKey?: string;
-  
+
   // OAuth2 (Custom integrations)
   oauth2?: {
     clientId: string;
@@ -185,7 +190,7 @@ interface AuthCredentials {
     accessToken?: string;
     expiresAt?: number;
   };
-  
+
   // Service Account (Enterprise)
   serviceAccount?: {
     type: string;
@@ -224,21 +229,21 @@ class AuthenticationManager {
     // Check for existing refresh token
     if (credentials.refreshToken) {
       oauth2Client.setCredentials({
-        refresh_token: credentials.refreshToken
+        refresh_token: credentials.refreshToken,
       });
 
       try {
         const { credentials: tokens } = await oauth2Client.refreshAccessToken();
-        
+
         // Detect subscription tier from user info
         const userInfo = await this.getUserSubscriptionInfo(tokens.access_token);
-        
+
         return {
           token: tokens.access_token,
           refreshToken: tokens.refresh_token,
           expiresAt: tokens.expiry_date,
           subscriptionTier: userInfo.subscriptionTier,
-          rateLimit: this.getRateLimitForTier(userInfo.subscriptionTier)
+          rateLimit: this.getRateLimitForTier(userInfo.subscriptionTier),
         };
       } catch (error) {
         throw new AuthenticationError('Failed to refresh Gemini subscription token');
@@ -250,34 +255,174 @@ class AuthenticationManager {
       access_type: 'offline',
       scope: credentials.scope || [
         'https://www.googleapis.com/auth/generative-language',
-        'https://www.googleapis.com/auth/userinfo.profile'
-      ]
+        'https://www.googleapis.com/auth/userinfo.profile',
+      ],
     });
 
     throw new AuthenticationFlowRequired('Please visit: ' + authUrl);
   }
 
   private async getUserSubscriptionInfo(accessToken: string): Promise<SubscriptionInfo> {
-    // Get user's Gemini subscription tier
-    const response = await fetch('https://generativelanguage.googleapis.com/v1/models', {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    // Robust fallback chain for subscription tier detection
 
-    const data = await response.json();
-    
-    // Infer subscription tier from available models and rate limits
-    const availableModels = data.models?.map(m => m.name) || [];
-    
-    if (availableModels.includes('models/gemini-2.5-ultra')) {
-      return { subscriptionTier: 'ultra', maxRpm: 4000 };
-    } else if (availableModels.includes('models/gemini-2.5-pro')) {
-      return { subscriptionTier: 'pro', maxRpm: 1000 };
-    } else {
-      return { subscriptionTier: 'free', maxRpm: 15 };
+    // 1. Check GEMINI_SUBSCRIPTION_TIER environment variable
+    const envTier = process.env.GEMINI_SUBSCRIPTION_TIER;
+    if (envTier && ['free', 'pro', 'enterprise'].includes(envTier.toLowerCase())) {
+      return this.getTierInfo(envTier.toLowerCase() as SubscriptionTier);
     }
+
+    // 2. Check .geminirc.json configuration file
+    const configTier = await this.getConfiguredTier();
+    if (configTier) {
+      return this.getTierInfo(configTier);
+    }
+
+    // 3. API detection with retries and exponential backoff
+    const detectedTier = await this.detectTierFromAPI(accessToken);
+    if (detectedTier) {
+      // Cache tier with 1-hour TTL
+      await this.cacheTierInfo(detectedTier, 3600);
+      return this.getTierInfo(detectedTier);
+    }
+
+    // 4. Check cached tier
+    const cachedTier = await this.getCachedTier();
+    if (cachedTier && !this.isCacheExpired(cachedTier)) {
+      return this.getTierInfo(cachedTier.tier);
+    }
+
+    // 5. Default to 'free' with warning
+    console.warn('Unable to detect subscription tier, defaulting to free tier with conservative limits');
+    return this.getTierInfo('free');
+  }
+
+  private async getConfiguredTier(): Promise<SubscriptionTier | null> {
+    const { promises: fs } = await import('fs');
+    const path = await import('path');
+    const os = await import('os');
+
+    try {
+      const configPath = path.join(os.homedir(), '.geminirc.json');
+      const configExists = await fs.access(configPath).then(
+        () => true,
+        () => false
+      );
+
+      if (configExists) {
+        const configContent = await fs.readFile(configPath, 'utf8');
+        const config = JSON.parse(configContent);
+
+        if (config.subscriptionTier && ['free', 'pro', 'enterprise'].includes(config.subscriptionTier)) {
+          return config.subscriptionTier as SubscriptionTier;
+        }
+      }
+    } catch (error) {
+      // Silently ignore config file errors
+    }
+
+    return null;
+  }
+
+  private async detectTierFromAPI(accessToken: string, maxRetries: number = 3): Promise<SubscriptionTier | null> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch('https://generativelanguage.googleapis.com/v1/models', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000, // 10-second timeout
+        });
+
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const availableModels = data.models?.map((m: any) => m.name) || [];
+
+        // Infer subscription tier from available models
+        if (availableModels.includes('models/gemini-2.5-ultra')) {
+          return 'enterprise';
+        } else if (availableModels.includes('models/gemini-2.5-pro')) {
+          return 'pro';
+        } else {
+          return 'free';
+        }
+      } catch (error) {
+        lastError = error as Error;
+
+        if (attempt < maxRetries) {
+          // Exponential backoff: 1s, 2s, 4s
+          const backoffMs = Math.pow(2, attempt - 1) * 1000;
+          await new Promise(resolve => setTimeout(resolve, backoffMs));
+        }
+      }
+    }
+
+    console.warn(`Failed to detect subscription tier after ${maxRetries} attempts:`, lastError?.message);
+    return null;
+  }
+
+  private getTierInfo(tier: SubscriptionTier): SubscriptionInfo {
+    const tierConfigs = {
+      free: { subscriptionTier: 'free', maxRpm: 15 },
+      pro: { subscriptionTier: 'pro', maxRpm: 1000 },
+      enterprise: { subscriptionTier: 'enterprise', maxRpm: 4000 },
+    };
+
+    return tierConfigs[tier] as SubscriptionInfo;
+  }
+
+  private async cacheTierInfo(tier: SubscriptionTier, ttlSeconds: number): Promise<void> {
+    const { promises: fs } = await import('fs');
+    const path = await import('path');
+    const os = await import('os');
+
+    try {
+      const cacheData = {
+        tier,
+        timestamp: Date.now(),
+        ttl: ttlSeconds * 1000,
+      };
+
+      const cacheDir = path.join(os.homedir(), '.gemini', 'cache');
+      await fs.mkdir(cacheDir, { recursive: true });
+
+      const cachePath = path.join(cacheDir, 'tier.json');
+      await fs.writeFile(cachePath, JSON.stringify(cacheData));
+    } catch (error) {
+      // Silently ignore cache write errors
+    }
+  }
+
+  private async getCachedTier(): Promise<{ tier: SubscriptionTier; timestamp: number; ttl: number } | null> {
+    const { promises: fs } = await import('fs');
+    const path = await import('path');
+    const os = await import('os');
+
+    try {
+      const cachePath = path.join(os.homedir(), '.gemini', 'cache', 'tier.json');
+      const cacheExists = await fs.access(cachePath).then(
+        () => true,
+        () => false
+      );
+
+      if (cacheExists) {
+        const cacheContent = await fs.readFile(cachePath, 'utf8');
+        return JSON.parse(cacheContent);
+      }
+    } catch (error) {
+      // Silently ignore cache read errors
+    }
+
+    return null;
+  }
+
+  private isCacheExpired(cachedData: { timestamp: number; ttl: number }): boolean {
+    return Date.now() - cachedData.timestamp > cachedData.ttl;
   }
 }
 ```
@@ -288,7 +433,7 @@ class AuthenticationManager {
 enum GeminiModel {
   PRO = 'gemini-2.5-pro',
   FLASH = 'gemini-2.5-flash',
-  FLASH_LITE = 'gemini-2.5-flash-lite'
+  FLASH_LITE = 'gemini-2.5-flash-lite',
 }
 
 interface ModelSelectionCriteria {
@@ -305,23 +450,18 @@ class ModelSelector {
       free: {
         low: GeminiModel.FLASH_LITE,
         medium: GeminiModel.FLASH_LITE,
-        high: GeminiModel.FLASH_LITE
+        high: GeminiModel.FLASH_LITE,
       },
-      tier1: {
+      pro: {
         low: GeminiModel.FLASH_LITE,
         medium: GeminiModel.FLASH,
-        high: GeminiModel.FLASH
-      },
-      tier2: {
-        low: GeminiModel.FLASH,
-        medium: GeminiModel.FLASH,
-        high: GeminiModel.PRO
+        high: GeminiModel.PRO,
       },
       enterprise: {
         low: GeminiModel.FLASH,
         medium: GeminiModel.PRO,
-        high: GeminiModel.PRO
-      }
+        high: GeminiModel.PRO,
+      },
     };
 
     let model = matrix[criteria.subscriptionTier][criteria.complexity];
@@ -357,46 +497,45 @@ interface RateLimitConfig {
 
 class RateLimiter {
   private configs: Map<SubscriptionTier, RateLimitConfig> = new Map([
-    ['free', {
-      tier: 'free',
-      limits: {
-        requestsPerMinute: 15,
-        tokensPerMinute: 1_000_000,
-        requestsPerDay: 1_500,
-        concurrentRequests: 2
+    [
+      'free',
+      {
+        tier: 'free',
+        limits: {
+          requestsPerMinute: 15,
+          tokensPerMinute: 1_000_000,
+          requestsPerDay: 1_500,
+          concurrentRequests: 2,
+        },
+        backoffStrategy: 'exponential',
       },
-      backoffStrategy: 'exponential'
-    }],
-    ['tier1', {
-      tier: 'tier1',
-      limits: {
-        requestsPerMinute: 150,
-        tokensPerMinute: 2_000_000,
-        requestsPerDay: 10_000,
-        concurrentRequests: 5
+    ],
+    [
+      'pro',
+      {
+        tier: 'pro',
+        limits: {
+          requestsPerMinute: 1000,
+          tokensPerMinute: 4_000_000,
+          requestsPerDay: 100_000,
+          concurrentRequests: 10,
+        },
+        backoffStrategy: 'linear',
       },
-      backoffStrategy: 'exponential'
-    }],
-    ['tier2', {
-      tier: 'tier2',
-      limits: {
-        requestsPerMinute: 1000,
-        tokensPerMinute: 4_000_000,
-        requestsPerDay: 100_000,
-        concurrentRequests: 10
+    ],
+    [
+      'enterprise',
+      {
+        tier: 'enterprise',
+        limits: {
+          requestsPerMinute: 4000,
+          tokensPerMinute: 10_000_000,
+          requestsPerDay: 1_000_000,
+          concurrentRequests: 50,
+        },
+        backoffStrategy: 'fixed',
       },
-      backoffStrategy: 'linear'
-    }],
-    ['enterprise', {
-      tier: 'enterprise',
-      limits: {
-        requestsPerMinute: 4000,
-        tokensPerMinute: 10_000_000,
-        requestsPerDay: 1_000_000,
-        concurrentRequests: 50
-      },
-      backoffStrategy: 'fixed'
-    }]
+    ],
   ]);
 
   async throttle(request: GeminiRequest): Promise<void> {
@@ -424,6 +563,7 @@ interface TokenCalculationConfig {
 }
 
 class TokenCalculator {
+  // Token counting uses @anthropic-ai/tokenizer library for Claude API compatibility
   private readonly tokenRatios = {
     code: {
       javascript: 3.5,
@@ -432,18 +572,18 @@ class TokenCalculator {
       cpp: 3.0,
       go: 3.6,
       rust: 3.4,
-      default: 3.5
+      default: 3.5,
     },
     documentation: 4.2,
     json: 3.0,
     markdown: 4.0,
-    plain: 4.5
+    plain: 4.5,
   };
 
   calculate(content: string, config: TokenCalculationConfig): number {
     const baseRatio = this.getTokenRatio(config);
     const baseTokens = Math.ceil(content.length / baseRatio);
-    
+
     // Apply adjustments
     const adjustments = this.calculateAdjustments(content, config);
     return Math.ceil(baseTokens * adjustments);
@@ -462,17 +602,17 @@ class TokenCalculator {
     // Unicode characters adjustment
     const unicodeRatio = this.calculateUnicodeRatio(content);
     if (unicodeRatio > 0.1) {
-      adjustment *= (1 + unicodeRatio * 0.5);
+      adjustment *= 1 + unicodeRatio * 0.5;
     }
 
     // Whitespace density adjustment
     const whitespaceRatio = this.calculateWhitespaceRatio(content);
-    adjustment *= (1 - whitespaceRatio * 0.1);
+    adjustment *= 1 - whitespaceRatio * 0.1;
 
     // Code complexity adjustment
     if (config.contentType === 'code') {
       const complexity = this.calculateCodeComplexity(content);
-      adjustment *= (1 + complexity * 0.1);
+      adjustment *= 1 + complexity * 0.1;
     }
 
     return adjustment;
@@ -492,12 +632,12 @@ interface CompressionStrategy {
 
 class CompressionEngine {
   private strategies: CompressionStrategy[] = [
-    new WhitespaceCompressionStrategy(),     // Priority: 1
-    new CommentRemovalStrategy(),            // Priority: 2
-    new DuplicateRemovalStrategy(),          // Priority: 3
-    new SemanticCompressionStrategy(),       // Priority: 4
-    new SummarizationStrategy(),            // Priority: 5
-    new ChunkingStrategy()                  // Priority: 6
+    new WhitespaceCompressionStrategy(), // Priority: 1
+    new CommentRemovalStrategy(), // Priority: 2
+    new DuplicateRemovalStrategy(), // Priority: 3
+    new SemanticCompressionStrategy(), // Priority: 4
+    new SummarizationStrategy(), // Priority: 5
+    new ChunkingStrategy(), // Priority: 6
   ];
 
   async compress(context: Context, targetTokens: number): Promise<Context> {
@@ -530,10 +670,10 @@ class SemanticCompressionStrategy implements CompressionStrategy {
     // Extract semantic information
     const ast = await this.parseToAST(context.content);
     const semanticMap = this.buildSemanticMap(ast);
-    
+
     // Prioritize important code sections
     const prioritizedSections = this.prioritizeSections(semanticMap);
-    
+
     // Reconstruct compressed context
     return this.reconstructContext(prioritizedSections, targetTokens);
   }
@@ -558,9 +698,9 @@ interface CacheLayer {
 
 class MultiLayerCache {
   private layers: CacheLayer[] = [
-    new MemoryCache({ maxSize: 100, ttl: 300 }),      // L1: 5 minutes
-    new DiskCache({ maxSize: 1000, ttl: 3600 }),      // L2: 1 hour  
-    new RedisCache({ maxSize: 10000, ttl: 86400 })    // L3: 24 hours
+    new MemoryCache({ maxSize: 100, ttl: 300 }), // L1: 5 minutes
+    new DiskCache({ maxSize: 1000, ttl: 3600 }), // L2: 1 hour
+    new RedisCache({ maxSize: 10000, ttl: 86400 }), // L3: 24 hours
   ];
 
   async get(key: string): Promise<any> {
@@ -577,9 +717,7 @@ class MultiLayerCache {
 
   async set(key: string, value: any, ttl?: number): Promise<void> {
     // Write-through strategy
-    await Promise.all(
-      this.layers.map(layer => layer.set(key, value, ttl))
-    );
+    await Promise.all(this.layers.map(layer => layer.set(key, value, ttl)));
   }
 
   private async promote(key: string, value: any, fromPriority: number): Promise<void> {
@@ -605,12 +743,7 @@ interface CacheKeyConfig {
 
 class CacheKeyGenerator {
   generate(config: CacheKeyConfig): string {
-    const components = [
-      config.namespace,
-      config.command,
-      config.version,
-      this.hashParams(config.params)
-    ];
+    const components = [config.namespace, config.command, config.version, this.hashParams(config.params)];
 
     if (config.contextHash) {
       components.push(config.contextHash);
@@ -627,11 +760,11 @@ class CacheKeyGenerator {
   private normalizeParams(params: Record<string, any>): Record<string, any> {
     const sorted = Object.keys(params).sort();
     const normalized: Record<string, any> = {};
-    
+
     for (const key of sorted) {
       normalized[key] = this.normalizeValue(params[key]);
     }
-    
+
     return normalized;
   }
 
@@ -655,20 +788,20 @@ interface Command {
   category: CommandCategory;
   aliases?: string[];
   version: string;
-  
+
   // Execution
   validate(args: CommandArgs): ValidationResult;
   execute(context: CommandContext): Promise<CommandResult>;
-  
+
   // Configuration
   getConfig(): CommandConfig;
   getRequiredPermissions(): Permission[];
   getSupportedPlatforms(): Platform[];
-  
+
   // Resource Requirements
   getResourceRequirements(): ResourceRequirements;
   getSubscriptionRequirements(): SubscriptionRequirements;
-  
+
   // Hooks
   preExecute?(context: CommandContext): Promise<void>;
   postExecute?(result: CommandResult): Promise<void>;
@@ -709,7 +842,7 @@ enum CommandCategory {
   TESTING = 'testing',
   GIT_DEVOPS = 'git-devops',
   PROJECT_MANAGEMENT = 'project-management',
-  CUSTOM = 'custom'
+  CUSTOM = 'custom',
 }
 
 interface CategoryMetadata {
@@ -733,17 +866,17 @@ class CommandRegistry {
   register(command: Command): void {
     // Validate command
     this.validateCommand(command);
-    
+
     // Register primary name
     this.commands.set(command.name, command);
-    
+
     // Register aliases
     if (command.aliases) {
       for (const alias of command.aliases) {
         this.aliases.set(alias, command.name);
       }
     }
-    
+
     // Update category
     this.updateCategory(command);
   }
@@ -753,26 +886,25 @@ class CommandRegistry {
     if (this.commands.has(name)) {
       return this.commands.get(name);
     }
-    
+
     // Check aliases
     if (this.aliases.has(name)) {
       const realName = this.aliases.get(name);
       return this.commands.get(realName);
     }
-    
+
     return null;
   }
 
   discover(pattern?: string): Command[] {
     const commands = Array.from(this.commands.values());
-    
+
     if (pattern) {
-      return commands.filter(cmd => 
-        cmd.name.includes(pattern) || 
-        cmd.description.toLowerCase().includes(pattern.toLowerCase())
+      return commands.filter(
+        cmd => cmd.name.includes(pattern) || cmd.description.toLowerCase().includes(pattern.toLowerCase())
       );
     }
-    
+
     return commands;
   }
 }
@@ -798,24 +930,24 @@ interface ExplainCommandConfig {
 class ExplainCommand implements Command {
   name = 'explain';
   category = CommandCategory.CODE_INTELLIGENCE;
-  
+
   async execute(context: CommandContext): Promise<CommandResult> {
     const config = this.parseConfig(context);
     const code = await this.getCode(config.input);
     const language = config.options.language || this.detectLanguage(code);
-    
+
     const prompt = this.buildPrompt(code, language, config.options);
     const response = await context.geminiClient.generate({
       model: this.selectModel(context),
       prompt,
       temperature: 0.3,
-      maxTokens: 4096
+      maxTokens: 4096,
     });
-    
+
     return {
       success: true,
       data: this.formatResponse(response, config.options.outputFormat),
-      metadata: this.buildMetadata(response)
+      metadata: this.buildMetadata(response),
     };
   }
 }
@@ -836,26 +968,26 @@ interface ScaffoldCommandConfig {
 class ScaffoldCommand implements Command {
   name = 'scaffold';
   category = CommandCategory.CODE_INTELLIGENCE;
-  
+
   async execute(context: CommandContext): Promise<CommandResult> {
     const config = this.parseConfig(context);
     const template = await this.loadTemplate(config);
     const projectStyle = await this.analyzeProjectStyle(context.project);
-    
+
     const generationConfig = {
       type: config.type,
       description: config.description,
       template,
-      style: config.options.style === 'match-project' ? projectStyle : null
+      style: config.options.style === 'match-project' ? projectStyle : null,
     };
-    
+
     const code = await this.generateCode(generationConfig, context);
     const files = await this.createFiles(code, config.options.outputPath);
-    
+
     return {
       success: true,
       data: { files, code },
-      metadata: this.buildMetadata(context)
+      metadata: this.buildMetadata(context),
     };
   }
 }
@@ -879,37 +1011,29 @@ interface DocstringCommandConfig {
 class DocstringCommand implements Command {
   name = 'docstring';
   category = CommandCategory.DOCUMENTATION;
-  
+
   async execute(context: CommandContext): Promise<CommandResult> {
     const config = this.parseConfig(context);
     const files = await this.resolveFiles(config.target, config.options.recursive);
-    
+
     const results = [];
     for (const file of files) {
       const ast = await this.parseFile(file);
       const undocumented = this.findUndocumentedElements(ast, config.options);
-      
+
       if (undocumented.length > 0) {
-        const documentation = await this.generateDocumentation(
-          undocumented,
-          config.options.format,
-          context
-        );
-        
-        const updatedFile = await this.updateFile(
-          file,
-          documentation,
-          config.options.update
-        );
-        
+        const documentation = await this.generateDocumentation(undocumented, config.options.format, context);
+
+        const updatedFile = await this.updateFile(file, documentation, config.options.update);
+
         results.push(updatedFile);
       }
     }
-    
+
     return {
       success: true,
       data: results,
-      metadata: this.buildMetadata(context)
+      metadata: this.buildMetadata(context),
     };
   }
 }
@@ -1056,7 +1180,7 @@ interface CommandDefinition {
 
 ```yaml
 # .gemini/config.yaml
-version: "1.0.0"
+version: '1.0.0'
 api:
   model: gemini-2.5-flash
   temperature: 0.7
@@ -1070,6 +1194,28 @@ commands:
   scaffold:
     style: match-project
     framework: auto-detect
+```
+
+```json
+// ~/.geminirc.json - User-level configuration for subscription tier
+{
+  "version": "1.0.0",
+  "subscriptionTier": "pro",
+  "preferences": {
+    "defaultModel": "gemini-2.5-flash",
+    "enableCaching": true,
+    "maxConcurrentRequests": 5
+  },
+  "authentication": {
+    "method": "gemini-subscription",
+    "refreshTokenPath": "~/.gemini/tokens/refresh.token"
+  },
+  "rateLimits": {
+    "requestsPerMinute": 1000,
+    "tokensPerMinute": 2000000,
+    "requestsPerDay": 10000
+  }
+}
 ```
 
 ```toml
@@ -1124,21 +1270,21 @@ class SecurityManager {
   async validateRequest(request: Request): Promise<SecurityContext> {
     // Authentication
     const authContext = await this.authenticate(request);
-    
+
     // Authorization
     const authzContext = await this.authorize(authContext, request);
-    
+
     // Audit
     const auditContext = this.createAuditContext(authContext, request);
-    
+
     // Encryption
     const encryptionContext = await this.setupEncryption(authContext);
-    
+
     return {
       authentication: authContext,
       authorization: authzContext,
       audit: auditContext,
-      encryption: encryptionContext
+      encryption: encryptionContext,
     };
   }
 }
@@ -1153,50 +1299,50 @@ class InputValidator {
     command: this.validateCommand,
     code: this.validateCode,
     url: this.validateUrl,
-    email: this.validateEmail
+    email: this.validateEmail,
   };
 
   async validate(input: any, schema: ValidationSchema): Promise<ValidationResult> {
     const errors: ValidationError[] = [];
-    
+
     // Type validation
     if (!this.validateType(input, schema.type)) {
       errors.push({ field: schema.field, message: 'Invalid type' });
     }
-    
+
     // Format validation
     if (schema.format && !this.validateFormat(input, schema.format)) {
       errors.push({ field: schema.field, message: 'Invalid format' });
     }
-    
+
     // Security validation
     const securityIssues = await this.validateSecurity(input);
     errors.push(...securityIssues);
-    
+
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
   private async validateSecurity(input: any): Promise<ValidationError[]> {
     const errors: ValidationError[] = [];
-    
+
     // Path traversal check
     if (this.detectPathTraversal(input)) {
       errors.push({ field: 'input', message: 'Path traversal detected' });
     }
-    
+
     // Command injection check
     if (this.detectCommandInjection(input)) {
       errors.push({ field: 'input', message: 'Command injection detected' });
     }
-    
+
     // SQL injection check
     if (this.detectSQLInjection(input)) {
       errors.push({ field: 'input', message: 'SQL injection detected' });
     }
-    
+
     return errors;
   }
 }
@@ -1214,11 +1360,11 @@ interface SecureStorage {
 
 class PlatformSecureStorage implements SecureStorage {
   private platform = process.platform;
-  
+
   async store(key: string, value: any, encrypted: boolean): Promise<void> {
     const serialized = JSON.stringify(value);
     const data = encrypted ? await this.encrypt(serialized) : serialized;
-    
+
     switch (this.platform) {
       case 'darwin':
         return this.storeInKeychain(key, data);
@@ -1228,21 +1374,18 @@ class PlatformSecureStorage implements SecureStorage {
         return this.storeInSecretService(key, data);
     }
   }
-  
+
   private async encrypt(data: string): Promise<string> {
     const crypto = require('crypto');
     const algorithm = 'aes-256-gcm';
     const key = await this.getDerivedKey();
     const iv = crypto.randomBytes(16);
-    
+
     const cipher = crypto.createCipheriv(algorithm, key, iv);
-    const encrypted = Buffer.concat([
-      cipher.update(data, 'utf8'),
-      cipher.final()
-    ]);
-    
+    const encrypted = Buffer.concat([cipher.update(data, 'utf8'), cipher.final()]);
+
     const authTag = cipher.getAuthTag();
-    
+
     return Buffer.concat([iv, authTag, encrypted]).toString('base64');
   }
 }
@@ -1257,10 +1400,10 @@ class PlatformSecureStorage implements SecureStorage {
 ```typescript
 interface PerformanceRequirements {
   responseTime: {
-    p50: number;  // 50th percentile
-    p95: number;  // 95th percentile
-    p99: number;  // 99th percentile
-    max: number;  // Maximum acceptable
+    p50: number; // 50th percentile
+    p95: number; // 95th percentile
+    p99: number; // 99th percentile
+    max: number; // Maximum acceptable
   };
   throughput: {
     requestsPerSecond: number;
@@ -1280,25 +1423,25 @@ interface PerformanceRequirements {
 
 const PERFORMANCE_TARGETS: PerformanceRequirements = {
   responseTime: {
-    p50: 1000,   // 1 second
-    p95: 3000,   // 3 seconds
-    p99: 5000,   // 5 seconds
-    max: 10000   // 10 seconds
+    p50: 1000, // 1 second
+    p95: 3000, // 3 seconds
+    p99: 5000, // 5 seconds
+    max: 10000, // 10 seconds
   },
   throughput: {
     requestsPerSecond: 100,
-    tokensPerSecond: 50000
+    tokensPerSecond: 50000,
   },
   resources: {
     maxMemoryMB: 512,
     maxCPUPercent: 50,
-    maxDiskIOPS: 1000
+    maxDiskIOPS: 1000,
   },
   scalability: {
     maxConcurrentUsers: 10000,
-    maxProjectSize: 1000000,  // 1M files
-    maxTokenContext: 2000000   // 2M tokens
-  }
+    maxProjectSize: 1000000, // 1M files
+    maxTokenContext: 2000000, // 2M tokens
+  },
 };
 ```
 
@@ -1307,34 +1450,34 @@ const PERFORMANCE_TARGETS: PerformanceRequirements = {
 ```typescript
 class PerformanceMonitor {
   private metrics: Map<string, Metric> = new Map();
-  
+
   startTimer(operation: string): Timer {
-    return new Timer(operation, (duration) => {
+    return new Timer(operation, duration => {
       this.recordMetric(operation, 'duration', duration);
     });
   }
-  
+
   recordMetric(operation: string, type: string, value: number): void {
     const key = `${operation}.${type}`;
-    
+
     if (!this.metrics.has(key)) {
       this.metrics.set(key, new Metric(key));
     }
-    
+
     this.metrics.get(key).record(value);
   }
-  
+
   getStats(operation: string): MetricStats {
     const metrics = Array.from(this.metrics.entries())
       .filter(([key]) => key.startsWith(operation))
       .map(([_, metric]) => metric.getStats());
-    
+
     return this.aggregateStats(metrics);
   }
-  
+
   checkPerformance(): PerformanceReport {
     const violations: PerformanceViolation[] = [];
-    
+
     // Check response times
     const responseTimeStats = this.getStats('command.execution');
     if (responseTimeStats.p95 > PERFORMANCE_TARGETS.responseTime.p95) {
@@ -1342,10 +1485,10 @@ class PerformanceMonitor {
         type: 'response-time',
         metric: 'p95',
         actual: responseTimeStats.p95,
-        target: PERFORMANCE_TARGETS.responseTime.p95
+        target: PERFORMANCE_TARGETS.responseTime.p95,
       });
     }
-    
+
     // Check resource usage
     const memoryUsage = process.memoryUsage().heapUsed / 1024 / 1024;
     if (memoryUsage > PERFORMANCE_TARGETS.resources.maxMemoryMB) {
@@ -1353,14 +1496,14 @@ class PerformanceMonitor {
         type: 'memory',
         metric: 'heap',
         actual: memoryUsage,
-        target: PERFORMANCE_TARGETS.resources.maxMemoryMB
+        target: PERFORMANCE_TARGETS.resources.maxMemoryMB,
       });
     }
-    
+
     return {
       healthy: violations.length === 0,
       violations,
-      stats: this.getAllStats()
+      stats: this.getAllStats(),
     };
   }
 }
@@ -1375,18 +1518,18 @@ class PerformanceOptimizer {
     new ParallelizationOptimization(),
     new LazyLoadingOptimization(),
     new StreamingOptimization(),
-    new CompressionOptimization()
+    new CompressionOptimization(),
   ];
-  
+
   async optimize(operation: Operation): Promise<OptimizedOperation> {
     let optimized = operation;
-    
+
     for (const strategy of this.strategies) {
       if (strategy.applicable(optimized)) {
         optimized = await strategy.apply(optimized);
       }
     }
-    
+
     return optimized;
   }
 }
@@ -1395,7 +1538,7 @@ class StreamingOptimization implements OptimizationStrategy {
   applicable(operation: Operation): boolean {
     return operation.dataSize > 100000 && operation.type === 'sequential';
   }
-  
+
   async apply(operation: Operation): Promise<Operation> {
     return new StreamingOperation({
       ...operation,
@@ -1404,7 +1547,7 @@ class StreamingOptimization implements OptimizationStrategy {
         for (const chunk of chunks) {
           yield await this.processChunk(chunk, context);
         }
-      }
+      },
     });
   }
 }
@@ -1429,14 +1572,14 @@ class GitHubIntegration implements ServiceIntegration {
   name = 'github';
   type: 'api' as const;
   private octokit: Octokit;
-  
+
   async authenticate(): Promise<void> {
     this.octokit = new Octokit({
       auth: process.env.GITHUB_TOKEN,
       userAgent: 'gemini-cli-toolkit'
     });
   }
-  
+
   async execute(operation: string, params: any): Promise<any> {
     switch (operation) {
       case 'create-pr':
@@ -1449,7 +1592,7 @@ class GitHubIntegration implements ServiceIntegration {
         throw new Error(`Unsupported operation: ${operation}`);
     }
   }
-  
+
   private async createPullRequest(params: PullRequestParams): Promise<PullRequest> {
     return this.octokit.pulls.create({
       owner: params.owner,
@@ -1471,13 +1614,13 @@ interface Plugin {
   version: string;
   author?: string;
   description?: string;
-  
+
   // Lifecycle
   initialize(context: PluginContext): Promise<void>;
   activate(): Promise<void>;
   deactivate(): Promise<void>;
   uninstall(): Promise<void>;
-  
+
   // Extensions
   commands?: Command[];
   templates?: Template[];
@@ -1488,34 +1631,34 @@ interface Plugin {
 class PluginManager {
   private plugins: Map<string, Plugin> = new Map();
   private hooks: Map<string, Hook[]> = new Map();
-  
+
   async load(pluginPath: string): Promise<void> {
     const manifest = await this.loadManifest(pluginPath);
     const plugin = await this.loadPlugin(pluginPath, manifest);
-    
+
     await plugin.initialize(this.createContext());
     await plugin.activate();
-    
+
     this.registerPlugin(plugin);
   }
-  
+
   private registerPlugin(plugin: Plugin): void {
     this.plugins.set(plugin.name, plugin);
-    
+
     // Register commands
     if (plugin.commands) {
       for (const command of plugin.commands) {
         this.commandRegistry.register(command);
       }
     }
-    
+
     // Register hooks
     if (plugin.hooks) {
       for (const hook of plugin.hooks) {
         this.registerHook(hook);
       }
     }
-    
+
     // Register templates
     if (plugin.templates) {
       for (const template of plugin.templates) {
@@ -1537,7 +1680,7 @@ class GeminiCliError extends Error {
   code: string;
   details?: any;
   recoverable: boolean;
-  
+
   constructor(message: string, code: string, details?: any) {
     super(message);
     this.name = this.constructor.name;
@@ -1545,7 +1688,7 @@ class GeminiCliError extends Error {
     this.details = details;
     this.recoverable = this.isRecoverable();
   }
-  
+
   protected isRecoverable(): boolean {
     return false;
   }
@@ -1553,27 +1696,27 @@ class GeminiCliError extends Error {
 
 class AuthenticationError extends GeminiCliError {
   protected isRecoverable(): boolean {
-    return true;  // Can retry with new credentials
+    return true; // Can retry with new credentials
   }
 }
 
 class RateLimitError extends GeminiCliError {
   retryAfter: number;
-  
+
   protected isRecoverable(): boolean {
-    return true;  // Can retry after delay
+    return true; // Can retry after delay
   }
 }
 
 class ValidationError extends GeminiCliError {
   protected isRecoverable(): boolean {
-    return false;  // Input needs correction
+    return false; // Input needs correction
   }
 }
 
 class NetworkError extends GeminiCliError {
   protected isRecoverable(): boolean {
-    return true;  // Can retry
+    return true; // Can retry
   }
 }
 ```
@@ -1587,19 +1730,19 @@ class ErrorRecoveryManager {
     ['RATE_LIMIT', new RateLimitRecovery()],
     ['NETWORK_ERROR', new NetworkRecovery()],
     ['TIMEOUT', new TimeoutRecovery()],
-    ['CACHE_ERROR', new CacheRecovery()]
+    ['CACHE_ERROR', new CacheRecovery()],
   ]);
-  
+
   async recover(error: GeminiCliError, context: ExecutionContext): Promise<any> {
     if (!error.recoverable) {
       throw error;
     }
-    
+
     const strategy = this.strategies.get(error.code);
     if (!strategy) {
       throw error;
     }
-    
+
     return strategy.recover(error, context);
   }
 }
@@ -1609,19 +1752,19 @@ class RateLimitRecovery implements RecoveryStrategy {
     const backoffStrategies = {
       exponential: (attempt: number) => Math.min(1000 * Math.pow(2, attempt), 60000),
       linear: (attempt: number) => 1000 * attempt,
-      fixed: () => error.retryAfter || 5000
+      fixed: () => error.retryAfter || 5000,
     };
-    
+
     const strategy = context.subscription.backoffStrategy || 'exponential';
     const delay = backoffStrategies[strategy](context.retryAttempt);
-    
+
     await this.delay(delay);
-    
+
     // Downgrade model if necessary
     if (context.retryAttempt > 2) {
       context.model = this.downgradeModel(context.model);
     }
-    
+
     return context.retry();
   }
 }
@@ -1666,43 +1809,43 @@ class ErrorReporter {
         type: error.constructor.name,
         message: error.message,
         code: error instanceof GeminiCliError ? error.code : 'UNKNOWN',
-        stack: error.stack
+        stack: error.stack,
       },
       context: {
         command: context.command,
         args: this.sanitizeArgs(context.args),
         user: context.user?.id,
         project: context.project?.name,
-        platform: process.platform
+        platform: process.platform,
       },
       system: {
         nodeVersion: process.version,
         platform: process.platform,
         memory: process.memoryUsage().heapUsed,
-        cpu: process.cpuUsage().user
-      }
+        cpu: process.cpuUsage().user,
+      },
     };
-    
+
     // Log locally
     await this.logger.error(report);
-    
+
     // Send telemetry (if enabled)
     if (context.config.telemetry?.enabled) {
       await this.sendTelemetry(report);
     }
   }
-  
+
   private sanitizeArgs(args: any): any {
     // Remove sensitive information
     const sanitized = { ...args };
     const sensitiveKeys = ['apiKey', 'token', 'password', 'secret'];
-    
+
     for (const key of sensitiveKeys) {
       if (key in sanitized) {
         sanitized[key] = '[REDACTED]';
       }
     }
-    
+
     return sanitized;
   }
 }
@@ -1717,30 +1860,30 @@ class ErrorReporter {
 ```typescript
 class ConfigurationManager {
   private layers: ConfigurationLayer[] = [
-    new DefaultConfiguration(),      // Lowest priority
-    new GlobalConfiguration(),       // ~/.gemini/config.yaml
-    new ProjectConfiguration(),      // ./.gemini/config.yaml
-    new EnvironmentConfiguration(),  // Environment variables
-    new CommandLineConfiguration()   // Highest priority
+    new DefaultConfiguration(), // Lowest priority
+    new GlobalConfiguration(), // ~/.gemini/config.yaml
+    new ProjectConfiguration(), // ./.gemini/config.yaml
+    new EnvironmentConfiguration(), // Environment variables
+    new CommandLineConfiguration(), // Highest priority
   ];
-  
+
   async load(): Promise<Configuration> {
     let config: Configuration = {};
-    
+
     for (const layer of this.layers) {
       if (await layer.exists()) {
         const layerConfig = await layer.load();
         config = this.merge(config, layerConfig);
       }
     }
-    
+
     return this.validate(config);
   }
-  
+
   private merge(base: Configuration, overlay: Configuration): Configuration {
     return deepMerge(base, overlay, {
       arrays: 'replace',
-      objects: 'merge'
+      objects: 'merge',
     });
   }
 }
@@ -1752,6 +1895,7 @@ class ConfigurationManager {
 # Authentication
 GEMINI_API_KEY=your-api-key
 GEMINI_SERVICE_ACCOUNT_PATH=/path/to/service-account.json
+GEMINI_SUBSCRIPTION_TIER=pro  # Override tier detection (free|pro|enterprise)
 
 # API Configuration
 GEMINI_MODEL=gemini-2.5-flash
@@ -1775,6 +1919,8 @@ GEMINI_PARALLELISM=5
 # Security
 GEMINI_ENABLE_AUDIT=true
 GEMINI_ENCRYPT_CACHE=true
+JWT_SECRET=your-jwt-secret-key
+ENCRYPTION_PASSWORD=your-encryption-password
 ```
 
 ### 3. Platform-Specific Configuration
@@ -1786,32 +1932,30 @@ class PlatformConfiguration {
       shell: 'powershell.exe',
       configPath: '%USERPROFILE%\\.gemini',
       tempDir: '%TEMP%\\gemini',
-      lineEnding: '\r\n'
+      lineEnding: '\r\n',
     },
     darwin: {
       shell: '/bin/zsh',
       configPath: '~/.gemini',
       tempDir: '/tmp/gemini',
-      lineEnding: '\n'
+      lineEnding: '\n',
     },
     linux: {
       shell: '/bin/bash',
       configPath: '~/.gemini',
       tempDir: '/tmp/gemini',
-      lineEnding: '\n'
-    }
+      lineEnding: '\n',
+    },
   };
-  
+
   get(): PlatformConfig {
     const platform = process.platform;
     return this.configs[platform] || this.configs.linux;
   }
-  
+
   resolvePath(path: string): string {
     const config = this.get();
-    return path
-      .replace(/^~/, process.env.HOME || '')
-      .replace(/%([^%]+)%/g, (_, key) => process.env[key] || '');
+    return path.replace(/^~/, process.env.HOME || '').replace(/%([^%]+)%/g, (_, key) => process.env[key] || '');
   }
 }
 ```
@@ -1834,6 +1978,7 @@ These specifications ensure that the implementation will deliver a production-gr
 The modular architecture and extensive plugin system enable future expansion while maintaining backward compatibility. The subscription-aware features ensure optimal performance and cost efficiency for all user tiers, from free users to enterprise deployments.
 
 **Next Steps:**
+
 1. Review and approve specifications with stakeholder
 2. Set up development environment with cross-platform CI/CD
 3. Begin implementation following the phased approach in CLAUDE-BUILD-PLAN.md

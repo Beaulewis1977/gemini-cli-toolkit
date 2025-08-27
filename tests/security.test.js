@@ -5,11 +5,17 @@
  * Tests various security vulnerabilities and protections
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'mocha';
+// Jest globals are available automatically
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import { InputValidator, SafeCommandExecutor, SecureFileOperations, SecureErrorHandler, IntegrityVerifier } from '../lib/security.js';
+import {
+  InputValidator,
+  SafeCommandExecutor,
+  SecureFileOperations,
+  SecureErrorHandler,
+  IntegrityVerifier,
+} from '../lib/security.js';
 
 describe('Security Test Suite', () => {
   let tempDir;
@@ -20,7 +26,7 @@ describe('Security Test Suite', () => {
 
   afterEach(async () => {
     if (tempDir) {
-      await fs.rmdir(tempDir, { recursive: true });
+      await fs.rm(tempDir, { recursive: true });
     }
   });
 
@@ -29,7 +35,7 @@ describe('Security Test Suite', () => {
       it('should accept valid modes', () => {
         const validModes = ['compact', 'summary', 'standard', 'detailed'];
         validModes.forEach(mode => {
-          expect(() => InputValidator.validateMode(mode)).not.to.throw();
+          expect(() => InputValidator.validateMode(mode)).not.toThrow();
         });
       });
 
@@ -45,11 +51,11 @@ describe('Security Test Suite', () => {
           null,
           undefined,
           42,
-          []
+          [],
         ];
 
         invalidModes.forEach(mode => {
-          expect(() => InputValidator.validateMode(mode)).to.throw();
+          expect(() => InputValidator.validateMode(mode)).toThrow();
         });
       });
 
@@ -65,11 +71,11 @@ describe('Security Test Suite', () => {
           '\nwhoami',
           '\r\nid',
           'standard\0rm',
-          'summary%00id'
+          'summary%00id',
         ];
 
         injectionAttempts.forEach(attempt => {
-          expect(() => InputValidator.validateMode(attempt)).to.throw();
+          expect(() => InputValidator.validateMode(attempt)).toThrow();
         });
       });
     });
@@ -81,11 +87,11 @@ describe('Security Test Suite', () => {
           './relative/path',
           'simple-filename.txt',
           '/usr/local/bin/script',
-          'C:\\\\Users\\\\user\\\\project' // Windows path
+          'C:\\\\Users\\\\user\\\\project', // Windows path
         ];
 
         validPaths.forEach(pathStr => {
-          expect(() => InputValidator.validatePath(pathStr)).not.to.throw();
+          expect(() => InputValidator.validatePath(pathStr)).not.toThrow();
         });
       });
 
@@ -98,11 +104,11 @@ describe('Security Test Suite', () => {
           '\\\\..\\\\..\\\\boot.ini',
           'file/../../etc/hosts',
           '/var/www/../../../etc/passwd',
-          'C:\\\\..\\\\..\\\\Windows\\\\System32'
+          'C:\\\\..\\\\..\\\\Windows\\\\System32',
         ];
 
         traversalAttempts.forEach(attempt => {
-          expect(() => InputValidator.validatePath(attempt)).to.throw(/traversal/i);
+          expect(() => InputValidator.validatePath(attempt)).toThrow(/traversal/i);
         });
       });
 
@@ -112,11 +118,11 @@ describe('Security Test Suite', () => {
           'script.js\\0.txt',
           '/tmp/safe\\0/../../../etc/shadow',
           'file%00.txt',
-          'path\\x00injection'
+          'path\\x00injection',
         ];
 
         nullByteAttempts.forEach(attempt => {
-          expect(() => InputValidator.validatePath(attempt)).to.throw(/null/i);
+          expect(() => InputValidator.validatePath(attempt)).toThrow(/null/i);
         });
       });
 
@@ -128,29 +134,22 @@ describe('Security Test Suite', () => {
           'file"quotes"',
           'file|pipe',
           'file?query',
-          'file*wildcard'
+          'file*wildcard',
         ];
 
         dangerousChars.forEach(path => {
           const cleaned = InputValidator.validatePath(path);
-          expect(cleaned).not.to.contain(['<', '>', ':', '"', '|', '?', '*']);
+          ['<', '>', ':', '"', '|', '?', '*'].forEach(char => expect(cleaned).not.toContain(char));
         });
       });
     });
 
     describe('validateJSON', () => {
       it('should accept valid JSON', () => {
-        const validJSON = [
-          '{"key": "value"}',
-          '[1, 2, 3]',
-          'true',
-          'null',
-          '"string"',
-          '42'
-        ];
+        const validJSON = ['{"key": "value"}', '[1, 2, 3]', 'true', 'null', '"string"', '42'];
 
         validJSON.forEach(json => {
-          expect(() => InputValidator.validateJSON(json)).not.to.throw();
+          expect(() => InputValidator.validateJSON(json)).not.toThrow();
         });
       });
 
@@ -169,11 +168,11 @@ describe('Security Test Suite', () => {
           null,
           undefined,
           42,
-          []
+          [],
         ];
 
         invalidJSON.forEach(json => {
-          expect(() => InputValidator.validateJSON(json)).to.throw();
+          expect(() => InputValidator.validateJSON(json)).toThrow();
         });
       });
     });
@@ -188,23 +187,14 @@ describe('Security Test Suite', () => {
 
     describe('command validation', () => {
       it('should reject unauthorized commands', async () => {
-        const unauthorizedCommands = [
-          'rm',
-          'cat',
-          'wget',
-          'curl',
-          'bash',
-          'sh',
-          'exec',
-          'eval'
-        ];
+        const unauthorizedCommands = ['rm', 'cat', 'wget', 'curl', 'bash', 'sh', 'exec', 'eval'];
 
         for (const cmd of unauthorizedCommands) {
           try {
             await executor.execute(cmd, '/tmp/script.js');
-            expect.fail(`Should have rejected command: ${cmd}`);
+            throw new Error(`Should have rejected command: ${cmd}`);
           } catch (error) {
-            expect(error.message).to.contain('not allowed');
+            expect(error.message).toContain('not allowed');
           }
         }
       });
@@ -215,33 +205,25 @@ describe('Security Test Suite', () => {
           '/etc/shadow',
           'C:\\\\Windows\\\\System32\\\\cmd.exe',
           '/tmp/malicious.py', // wrong extension
-          '/usr/bin/rm' // not in allowed directory
+          '/usr/bin/rm', // not in allowed directory
         ];
 
         for (const path of invalidPaths) {
           try {
             await executor.execute('analyze', path);
-            expect.fail(`Should have rejected path: ${path}`);
+            throw new Error(`Should have rejected path: ${path}`);
           } catch (error) {
-            expect(error.message).to.match(/not allowed|JavaScript files|allowed directory/);
+            expect(error.message).toMatch(/not allowed|JavaScript files|allowed directory/);
           }
         }
       });
 
       it('should sanitize arguments', () => {
-        const dangerousArgs = [
-          '; rm -rf /',
-          '&& whoami',
-          '| cat /etc/passwd',
-          '`id`',
-          '$(whoami)',
-          '$USER',
-          '${PATH}'
-        ];
+        const dangerousArgs = ['; rm -rf /', '&& whoami', '| cat /etc/passwd', '`id`', '$(whoami)', '$USER', '${PATH}'];
 
         dangerousArgs.forEach(arg => {
           const sanitized = executor.sanitizeArg(arg);
-          expect(sanitized).not.to.contain([';', '&', '|', '`', '$', '(', ')', '<', '>', '\\\\', "'", '"']);
+          [';', '&', '|', '`', '$', '(', ')', '<', '>', '\\\\', "'", '"'].forEach(char => expect(sanitized).not.toContain(char));
         });
       });
     });
@@ -274,7 +256,7 @@ describe('Security Test Suite', () => {
         await fs.writeFile(testFile, 'test content');
 
         const content = await fileOps.readFile(testFile);
-        expect(content).to.equal('test content');
+        expect(content).toBe('test content');
       });
 
       it('should deny access to files outside allowed directories', async () => {
@@ -282,31 +264,28 @@ describe('Security Test Suite', () => {
           '/etc/passwd',
           '/tmp/outside.txt',
           '../../../etc/shadow',
-          path.join(tempDir, '../forbidden.txt')
+          path.join(tempDir, '../forbidden.txt'),
         ];
 
         for (const filePath of forbiddenPaths) {
           try {
             await fileOps.readFile(filePath);
-            expect.fail(`Should have denied access to: ${filePath}`);
+            throw new Error(`Should have denied access to: ${filePath}`);
           } catch (error) {
-            expect(error.message).to.contain('denied');
+            expect(error.message).toContain('denied');
           }
         }
       });
 
       it('should reject files with null bytes in path', async () => {
-        const nullBytePaths = [
-          `${tempDir}/file\\0.txt`,
-          `${tempDir}/normal\\0../../../etc/passwd`
-        ];
+        const nullBytePaths = [`${tempDir}/file\\0.txt`, `${tempDir}/normal\\0../../../etc/passwd`];
 
         for (const filePath of nullBytePaths) {
           try {
             await fileOps.readFile(filePath);
-            expect.fail(`Should have rejected null byte path: ${filePath}`);
+            throw new Error(`Should have rejected null byte path: ${filePath}`);
           } catch (error) {
-            expect(error.message).to.contain('null');
+            expect(error.message).toContain('null');
           }
         }
       });
@@ -320,9 +299,9 @@ describe('Security Test Suite', () => {
 
         try {
           await fileOps.readFile(largeFile);
-          expect.fail('Should have rejected large file');
+          throw new Error('Should have rejected large file');
         } catch (error) {
-          expect(error.message).to.contain('too large');
+          expect(error.message).toContain('too large');
         }
       });
 
@@ -332,7 +311,7 @@ describe('Security Test Suite', () => {
         await fs.writeFile(normalFile, normalContent);
 
         const content = await fileOps.readFile(normalFile);
-        expect(content).to.equal(normalContent);
+        expect(content).toBe(normalContent);
       });
     });
 
@@ -344,9 +323,9 @@ describe('Security Test Suite', () => {
 
         try {
           await fileOps.readFile(dirPath);
-          expect.fail('Should have rejected directory');
+          throw new Error('Should have rejected directory');
         } catch (error) {
-          expect(error.message).to.contain('not a regular file');
+          expect(error.message).toContain('not a regular file');
         }
       });
     });
@@ -357,10 +336,10 @@ describe('Security Test Suite', () => {
         const content = 'atomic write test';
 
         const writtenPath = await fileOps.writeFile(testFile, content);
-        expect(writtenPath).to.equal(testFile);
+        expect(writtenPath).toBe(testFile);
 
         const readContent = await fs.readFile(testFile, 'utf8');
-        expect(readContent).to.equal(content);
+        expect(readContent).toBe(content);
       });
     });
   });
@@ -369,30 +348,25 @@ describe('Security Test Suite', () => {
     describe('error sanitization', () => {
       it('should sanitize error messages to prevent information disclosure', () => {
         const sensitiveErrors = [
-          new Error('ENOENT: no such file or directory, open \'/home/user/secret/password.txt\''),
+          new Error("ENOENT: no such file or directory, open '/home/user/secret/password.txt'"),
           new Error('Connection failed to mysql://user:password@localhost:3306/db'),
           new Error('Failed to read /etc/shadow: Permission denied'),
           { code: 'EACCES', message: 'Permission denied accessing /root/.ssh/id_rsa' },
-          { message: 'SQL injection detected in user input' }
+          { message: 'SQL injection detected in user input' },
         ];
 
         sensitiveErrors.forEach(error => {
           const sanitized = SecureErrorHandler.sanitizeError(error);
-          
+
           // Should not contain sensitive paths or information
-          expect(sanitized.error).not.to.contain([
-            '/home/user/secret',
-            'password',
-            '/etc/shadow',
-            '/root/.ssh',
-            'mysql://',
-            'SQL injection'
-          ]);
+          ['/home/user/secret', 'password', '/etc/shadow', '/root/.ssh', 'mysql://', 'SQL injection'].forEach(sensitive => 
+            expect(sanitized.error).not.toContain(sensitive)
+          );
 
           // Should contain safe, generic messages
-          expect(sanitized.error).to.be.a('string');
-          expect(sanitized.timestamp).to.be.a('string');
-          expect(sanitized.id).to.be.a('string');
+          expect(typeof sanitized.error).toBe('string');
+          expect(typeof sanitized.timestamp).toBe('string');
+          expect(typeof sanitized.id).toBe('string');
         });
       });
 
@@ -401,13 +375,13 @@ describe('Security Test Suite', () => {
           { code: 'ENOENT', expectedMessage: 'File or directory not found' },
           { code: 'EACCES', expectedMessage: 'Permission denied' },
           { code: 'EINVAL', expectedMessage: 'Invalid input provided' },
-          { code: 'TIMEOUT', expectedMessage: 'Operation timed out' }
+          { code: 'TIMEOUT', expectedMessage: 'Operation timed out' },
         ];
 
         errorMappings.forEach(({ code, expectedMessage }) => {
           const error = { code, message: 'Original sensitive message' };
           const sanitized = SecureErrorHandler.sanitizeError(error);
-          expect(sanitized.error).to.equal(expectedMessage);
+          expect(sanitized.error).toBe(expectedMessage);
         });
       });
     });
@@ -417,7 +391,7 @@ describe('Security Test Suite', () => {
         const events = [
           { event: 'invalid_input', details: { userInput: 'malicious; rm -rf /', userId: 'user123' } },
           { event: 'path_traversal', details: { attemptedPath: '../../../etc/passwd' } },
-          { event: 'command_injection', details: { command: 'ls; rm -rf /' } }
+          { event: 'command_injection', details: { command: 'ls; rm -rf /' } },
         ];
 
         // Mock console.warn to capture logs
@@ -432,10 +406,12 @@ describe('Security Test Suite', () => {
         console.warn = originalWarn;
 
         // Verify logs were created and sensitive data was redacted
-        expect(logs.length).to.be.greaterThan(0);
+        expect(logs.length).toBeGreaterThan(0);
         logs.forEach(log => {
           const logString = log.join(' ');
-          expect(logString).not.to.contain(['malicious; rm -rf /', '/etc/passwd', 'user123']);
+          ['malicious; rm -rf /', '/etc/passwd', 'user123'].forEach(sensitive => 
+            expect(logString).not.toContain(sensitive)
+          );
         });
       });
     });
@@ -452,7 +428,7 @@ describe('Security Test Suite', () => {
         const expectedHash = IntegrityVerifier.generateChecksum(content);
 
         const isValid = await IntegrityVerifier.verifyChecksum(testFile, expectedHash);
-        expect(isValid).to.be.true;
+        expect(isValid).toBe(true);
       });
 
       it('should reject incorrect checksums', async () => {
@@ -463,7 +439,7 @@ describe('Security Test Suite', () => {
         const wrongHash = 'test-hash-12345';
 
         const isValid = await IntegrityVerifier.verifyChecksum(testFile, wrongHash);
-        expect(isValid).to.be.false;
+        expect(isValid).toBe(false);
       });
 
       it('should handle different hash algorithms', () => {
@@ -472,8 +448,8 @@ describe('Security Test Suite', () => {
 
         algorithms.forEach(algo => {
           const hash = IntegrityVerifier.generateChecksum(content, algo);
-          expect(hash).to.be.a('string');
-          expect(hash.length).to.be.greaterThan(0);
+          expect(typeof hash).toBe('string');
+          expect(hash.length).toBeGreaterThan(0);
         });
       });
     });
@@ -482,39 +458,29 @@ describe('Security Test Suite', () => {
   describe('Integration Tests', () => {
     it('should prevent command injection in real scenario', async () => {
       // Test that malicious mode parameter cannot execute commands
-      const maliciousModes = [
-        'summary; rm -rf /',
-        'standard && whoami',
-        'detailed | cat /etc/passwd'
-      ];
-
-      const executor = new SafeCommandExecutor();
+      const maliciousModes = ['summary; rm -rf /', 'standard && whoami', 'detailed | cat /etc/passwd'];
 
       for (const mode of maliciousModes) {
         try {
           // This should fail at validation stage
           InputValidator.validateMode(mode);
-          expect.fail(`Should have rejected malicious mode: ${mode}`);
+          throw new Error(`Should have rejected malicious mode: ${mode}`);
         } catch (error) {
-          expect(error.message).to.contain('Invalid');
+          expect(error.message).toContain('Invalid');
         }
       }
     });
 
     it('should prevent path traversal in directory search', () => {
       // Test that findClaudeDirectory cannot be exploited
-      const maliciousPaths = [
-        '../../../etc',
-        '../../../../../../root',
-        '/etc/../../../etc/passwd'
-      ];
+      const maliciousPaths = ['../../../etc', '../../../../../../root', '/etc/../../../etc/passwd'];
 
       maliciousPaths.forEach(path => {
         try {
           InputValidator.validatePath(path);
-          expect.fail(`Should have rejected traversal path: ${path}`);
+          throw new Error(`Should have rejected traversal path: ${path}`);
         } catch (error) {
-          expect(error.message).to.contain('traversal');
+          expect(error.message).toContain('traversal');
         }
       });
     });
@@ -524,13 +490,13 @@ describe('Security Test Suite', () => {
       const testScenario = {
         mode: 'summary; rm -rf /',
         path: '../../../etc/passwd',
-        json: '{"key": malicious_value}'
+        json: '{"key": malicious_value}',
       };
 
       // Each layer should reject the malicious input
-      expect(() => InputValidator.validateMode(testScenario.mode)).to.throw();
-      expect(() => InputValidator.validatePath(testScenario.path)).to.throw();
-      expect(() => InputValidator.validateJSON(testScenario.json)).to.throw();
+      expect(() => InputValidator.validateMode(testScenario.mode)).toThrow();
+      expect(() => InputValidator.validatePath(testScenario.path)).toThrow();
+      expect(() => InputValidator.validateJSON(testScenario.json)).toThrow();
     });
   });
 });

@@ -273,7 +273,7 @@ async function analyze() {
 
   // Read agent files
   let customAgents = 0;
-  let agentBreakdown = {};
+  const agentBreakdown = {};
 
   try {
     const agentsDir = path.join(claudeDir, 'agents');

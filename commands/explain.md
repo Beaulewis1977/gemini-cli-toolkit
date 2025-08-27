@@ -9,7 +9,7 @@ All modes display instantly in Gemini CLI - no Ctrl+R needed!
 # Compact mode (22 lines) - fits Gemini CLI display perfectly
 /context
 
-# Standard mode (45 lines) - moderate detail, top servers and agents  
+# Standard mode (45 lines) - moderate detail, top servers and agents
 /context standard
 
 # Detailed mode (100+ lines) - complete analysis with progress bars
@@ -17,13 +17,15 @@ All modes display instantly in Gemini CLI - no Ctrl+R needed!
 ```
 
 **Choose the right mode:**
-- **Quick check before starting work**: `/context` 
+
+- **Quick check before starting work**: `/context`
 - **Planning optimizations**: `/context standard`
 - **Deep troubleshooting**: `/context detailed`
 
 **What This Analyzes:**
+
 - **System Prompt**: Base Gemini CLI instructions (~8.5k tokens)
-- **System Tools**: Built-in tools like Read, Write, Edit (~15.2k tokens)  
+- **System Tools**: Built-in tools like Read, Write, Edit (~15.2k tokens)
 - **MCP Tools**: Active Model Context Protocol servers and their tools
 - **Custom Agents**: Agent configurations in `.gemini/agents/`
 - **Memory Files**: `.gemini/CLAUDE.md` and other context files
@@ -31,6 +33,7 @@ All modes display instantly in Gemini CLI - no Ctrl+R needed!
 
 **Smart Project Detection:**
 The global scripts automatically:
+
 - Walk up directory tree to find nearest `.gemini` folder
 - Use that project's configuration for analysis
 - Work from any subdirectory within a Gemini CLI project
@@ -39,12 +42,14 @@ The global scripts automatically:
 **Analysis Phases:**
 
 **Phase 1: Project Discovery**
+
 - Detect current project by finding nearest `.gemini/` directory
 - Load project-specific MCP server configurations
 - Scan custom agent files and memory files
 - Display project path and name for context
 
 **Phase 2: Token Estimation**
+
 - **System Components**: ~23.7k tokens (system prompt + built-in tools)
 - **MCP Servers**: Variable based on enabled servers in settings.local.json
 - **Custom Agents**: Calculated from actual `.md` files in `agents/`
@@ -53,18 +58,21 @@ The global scripts automatically:
 
 **Phase 3: Optimization Analysis**
 Identifies potential inefficiencies:
+
 - **High MCP Usage**: >100k tokens suggests server consolidation
 - **Large Agent Files**: >10k tokens suggests agent optimization
 - **Excessive MCP Servers**: >15 servers suggests selective loading
 - **Oversized Memory**: Large CLAUDE.md files that could be summarized
 
 **Usage Patterns:**
+
 - `/context` - Quick 22-line overview that fits Gemini CLI display
 - `/context standard` - Moderate 45-line analysis with top resources
 - `/context detailed` - Complete 100+ line breakdown with progress bars
 - Works from any directory within a project, displays instantly
 
 **Sample Output Format:**
+
 ```
   ⎿  ⛁⛁⛁⛁⛁⛁⛁⛁⛁⛁⛁⛁⛁⛁⛁⛀⛶⛶⛶⛶
      ⛁⛁⛁⛁⛁⛁⛁⛁⛁⛁⛁⛁⛁⛁⛁⛀⛶⛶⛶⛶   Context Usage
@@ -101,6 +109,7 @@ High Impact (>10% token reduction):
 
 **When I Run `/context` for You:**
 I'll execute the global analysis script and provide:
+
 1. **Current Project Detection**: Which project's `.gemini` config is being analyzed
 2. **Token Breakdown**: Actual percentages and counts from your configuration
 3. **Top Resource Consumers**: MCP servers and agents using the most tokens
@@ -108,6 +117,7 @@ I'll execute the global analysis script and provide:
 5. **Project-Aware**: Analysis specific to whichever project you're currently in
 
 **Performance Optimizations:**
+
 - **Fast Execution**: Sub-2-second analysis with intelligent caching
 - **Parallel Processing**: Concurrent analysis of system components
 - **Smart Caching**: 2-minute cache for rapid repeated queries
@@ -115,6 +125,7 @@ I'll execute the global analysis script and provide:
 - **Efficient Data**: Pre-calculated MCP tool token estimates
 
 **Unicode Display Features:**
+
 - **Proper Box Characters**: Uses ⎿ for box structure
 - **Progress Bars**: Accurate ⛁⛀⛶ character progression
 - **Hierarchical Layout**: Tree structure with └ characters
@@ -122,6 +133,7 @@ I'll execute the global analysis script and provide:
 - **Individual Tool Breakdown**: Each MCP tool with server and token count
 
 **Benefits of Global Implementation:**
+
 - **Universal Access**: Works from any directory in any Gemini CLI project
 - **No Project Setup**: No need to copy scripts to each project
 - **Dynamic Detection**: Automatically finds and analyzes the right project

@@ -11,7 +11,7 @@ The Gemini CLI Context Command project prioritizes security above all else. We h
 Our comprehensive security improvements have eliminated **all 25+ identified vulnerabilities**:
 
 - ✅ **Command Injection Prevention**: Secure `spawn()` usage with strict argument validation
-- ✅ **Path Traversal Protection**: Comprehensive path validation for all file operations  
+- ✅ **Path Traversal Protection**: Comprehensive path validation for all file operations
 - ✅ **Download Integrity Verification**: SHA256 checksum validation for all downloads
 - ✅ **Input Validation**: Multi-layer validation for all user inputs and external data
 - ✅ **Secure File Operations**: Protected file system operations with access controls
@@ -21,10 +21,10 @@ Our comprehensive security improvements have eliminated **all 25+ identified vul
 
 ## 🔍 Supported Versions
 
-| Version | Supported          | Security Status |
-| ------- | ------------------ | --------------- |
-| Latest  | ✅ Yes            | Actively maintained |
-| < 1.0   | ⚠️ Limited       | Critical fixes only |
+| Version | Supported  | Security Status     |
+| ------- | ---------- | ------------------- |
+| Latest  | ✅ Yes     | Actively maintained |
+| < 1.0   | ⚠️ Limited | Critical fixes only |
 
 ## 🚨 Reporting Security Vulnerabilities
 
@@ -68,7 +68,7 @@ Subject: SECURITY - [Brief Description]
 
 **Reproduction Steps**:
 1. [Step 1]
-2. [Step 2] 
+2. [Step 2]
 3. [Step 3]
 
 **Expected Impact**:
@@ -85,13 +85,13 @@ Subject: SECURITY - [Brief Description]
 
 ## ⏰ Response Timeline
 
-| Stage | Timeline | Description |
-|-------|----------|-------------|
-| **Acknowledgment** | < 48 hours | We confirm receipt of your report |
-| **Initial Assessment** | < 5 days | We evaluate the vulnerability severity |
-| **Investigation** | < 14 days | We investigate and develop a fix |
-| **Fix Development** | < 30 days | We implement and test the security fix |
-| **Disclosure** | < 90 days | We coordinate responsible disclosure |
+| Stage                  | Timeline   | Description                            |
+| ---------------------- | ---------- | -------------------------------------- |
+| **Acknowledgment**     | < 48 hours | We confirm receipt of your report      |
+| **Initial Assessment** | < 5 days   | We evaluate the vulnerability severity |
+| **Investigation**      | < 14 days  | We investigate and develop a fix       |
+| **Fix Development**    | < 30 days  | We implement and test the security fix |
+| **Disclosure**         | < 90 days  | We coordinate responsible disclosure   |
 
 ## 🔒 Security Measures in Development
 
@@ -144,7 +144,7 @@ We recognize security researchers who help improve our security:
 
 ### Contributors
 
-*[Security researchers who responsibly disclose vulnerabilities will be listed here]*
+_[Security researchers who responsibly disclose vulnerabilities will be listed here]_
 
 ### Recognition Criteria
 

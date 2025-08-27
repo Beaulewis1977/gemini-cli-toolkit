@@ -2,9 +2,9 @@ name: CI/CD - Security & Quality Gates
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
   workflow_dispatch:
 
 env:
@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 15
     outputs:
       security-passed: ${{ steps.security-check.outputs.passed }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -43,7 +43,7 @@ jobs:
         run: |
           echo "Running comprehensive security test suite..."
           npm test 2>&1 | tee security-results.txt
-          
+
           # Check if tests passed
           if [ ${PIPESTATUS[0]} -eq 0 ]; then
             echo "✅ All security tests passed"
@@ -69,7 +69,7 @@ jobs:
     needs: security-gate
     if: needs.security-gate.outputs.security-passed == 'true'
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -109,7 +109,7 @@ jobs:
     needs: [security-gate, vulnerability-scan]
     if: needs.security-gate.outputs.security-passed == 'true'
     timeout-minutes: 20
-    
+
     strategy:
       fail-fast: false
       matrix:
@@ -140,12 +140,12 @@ jobs:
       - name: Setup .gemini directory for testing
         run: |
           echo "📁 Setting up .gemini directory structure for CI testing..."
-          
+
           # Create .gemini directory structure
           mkdir -p .gemini/agents
           mkdir -p .gemini/memory-bank
           mkdir -p .gemini/scripts
-          
+
           # Create basic CLAUDE.md file using echo (cross-platform)
           echo "# Gemini CLI Context Command Project" > .gemini/CLAUDE.md
           echo "" >> .gemini/CLAUDE.md
@@ -158,7 +158,7 @@ jobs:
           echo "## Context" >> .gemini/CLAUDE.md
           echo "" >> .gemini/CLAUDE.md
           echo "The context analyzer should be able to process this minimal project structure for testing purposes." >> .gemini/CLAUDE.md
-          
+
           # Create basic settings.local.json file using echo (cross-platform)
           echo "{" > .gemini/settings.local.json
           echo "  \"project_name\": \"gemini-cli-test\"," >> .gemini/settings.local.json
@@ -168,7 +168,7 @@ jobs:
           echo "  \"test_environment\": true," >> .gemini/settings.local.json
           echo "  \"enabledMcpjsonServers\": []" >> .gemini/settings.local.json
           echo "}" >> .gemini/settings.local.json
-          
+
           echo "✅ .gemini directory structure created successfully"
 
       - name: Run functional tests
@@ -179,12 +179,12 @@ jobs:
             echo "❌ Context analyzer failed"
             exit 1
           }
-          
+
           node context-cmd.js compact || {
             echo "❌ Context command failed"
             exit 1
           }
-          
+
           echo "✅ Functional tests passed"
 
       - name: Test security module
@@ -213,7 +213,7 @@ jobs:
     needs: [security-gate, vulnerability-scan]
     if: needs.security-gate.outputs.security-passed == 'true'
     timeout-minutes: 15
-    
+
     strategy:
       fail-fast: false
       matrix:
@@ -237,18 +237,18 @@ jobs:
         run: |
           echo "🔧 Testing ${{ matrix.installer }} on ${{ matrix.os }}"
           chmod +x ./installers/${{ matrix.installer }}
-          
+
           # Create a temporary home directory for testing
           export TEST_HOME=$(mktemp -d)
           export HOME=$TEST_HOME
-          
+
           # Run installer
           cd installers
           ./${{ matrix.installer }} || {
             echo "❌ Installer failed"
             exit 1
           }
-          
+
           # Verify installation
           if [ -f "$TEST_HOME/.gemini/scripts/context-cmd.js" ]; then
             echo "✅ Installation verified - files copied correctly"
@@ -263,12 +263,12 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "🔧 Testing ${{ matrix.installer }} on ${{ matrix.os }}"
-          
+
           # Create temporary home directory
           $TestHome = New-TemporaryFile | ForEach-Object { Remove-Item $_; New-Item -ItemType Directory -Path $_ }
           $env:HOME = $TestHome.FullName
           $env:USERPROFILE = $TestHome.FullName
-          
+
           # Run installer
           Set-Location installers
           powershell -ExecutionPolicy Bypass -File ${{ matrix.installer }}
@@ -276,7 +276,7 @@ jobs:
             Write-Error "❌ Installer failed"
             exit 1
           }
-          
+
           # Verify installation
           $InstallPath = Join-Path $TestHome.FullName ".gemini\scripts\context-cmd.js"
           if (Test-Path $InstallPath) {
@@ -294,7 +294,7 @@ jobs:
     needs: security-gate
     if: needs.security-gate.outputs.security-passed == 'true'
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -347,7 +347,7 @@ jobs:
       - name: Check file structure
         run: |
           echo "📁 Verifying project structure..."
-          
+
           # Check required files exist
           required_files=(
             "README.md"
@@ -356,31 +356,31 @@ jobs:
             "lib/security.js"
             "tests/security.test.js"
           )
-          
+
           for file in "${required_files[@]}"; do
             if [ ! -f "$file" ]; then
               echo "❌ Required file missing: $file"
               exit 1
             fi
           done
-          
+
           echo "✅ All required files present"
 
       - name: Check security file permissions
         run: |
           echo "🔒 Checking file permissions..."
-          
+
           # Check that JavaScript files are not executable (security best practice)
           find . -name "*.js" -type f -executable -not -path "./scripts/node_modules/*" | while read file; do
             echo "⚠️  JavaScript file should not be executable: $file"
           done
-          
+
           # Check installer permissions
           if [ ! -x "installers/install.sh" ]; then
             echo "❌ install.sh should be executable"
             exit 1
           fi
-          
+
           echo "✅ File permissions verified"
 
   # Final validation
@@ -389,7 +389,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [cross-platform-test, installer-test, code-quality]
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -408,27 +408,27 @@ jobs:
       - name: Setup .gemini directory for integration testing
         run: |
           echo "📁 Setting up .gemini directory structure for integration testing..."
-          
+
           # Create .gemini directory structure
           mkdir -p .gemini/agents
           mkdir -p .gemini/memory-bank  
           mkdir -p .gemini/scripts
-          
+
           # Create basic CLAUDE.md file
           cat > .gemini/CLAUDE.md << 'EOF'
           # Gemini CLI Context Command Project
-          
+
           This is a test project for CI/CD pipeline validation.
-          
+
           ## Project Overview
-          
+
           Testing the gemini-cli functionality in CI environment.
-          
+
           ## Context
-          
+
           The context analyzer should be able to process this minimal project structure for testing purposes.
           EOF
-          
+
           # Create basic settings.local.json file
           cat > .gemini/settings.local.json << 'EOF'
           {
@@ -440,7 +440,7 @@ jobs:
             "enabledMcpjsonServers": []
           }
           EOF
-          
+
           echo "✅ .gemini directory structure created successfully"
           ls -la .gemini/
 
@@ -448,29 +448,29 @@ jobs:
         working-directory: ./
         run: |
           echo "🚀 Running end-to-end integration test..."
-          
+
           # Test the complete workflow
           cd scripts
-          
+
           # Test different modes
           echo "Testing compact mode..."
           timeout 30 node context-cmd.js compact || {
             echo "❌ Compact mode failed"
             exit 1
           }
-          
+
           echo "Testing standard mode..."
           timeout 30 node context-cmd.js standard || {
             echo "❌ Standard mode failed"  
             exit 1
           }
-          
+
           echo "Testing detailed mode..."
           timeout 30 node context-cmd.js detailed || {
             echo "❌ Detailed mode failed"
             exit 1
           }
-          
+
           echo "✅ All integration tests passed"
 
   # Success notification
@@ -479,7 +479,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [security-gate, vulnerability-scan, cross-platform-test, installer-test, code-quality, integration-test]
     if: success()
-    
+
     steps:
       - name: Success notification
         run: |

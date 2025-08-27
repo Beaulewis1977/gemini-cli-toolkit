@@ -2,9 +2,9 @@ name: Security Analysis
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
   schedule:
     # Run security scans daily at 2 AM UTC
     - cron: '0 2 * * *'
@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'javascript' ]
+        language: ['javascript']
 
     steps:
       - name: Checkout repository
@@ -51,7 +51,7 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          category: "/language:${{matrix.language}}"
+          category: '/language:${{matrix.language}}'
           upload: true
 
   # Comprehensive security test suite
@@ -59,7 +59,7 @@ jobs:
     name: Security Test Suite
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -81,10 +81,10 @@ jobs:
         working-directory: ./scripts
         run: |
           echo "🔍 Running comprehensive security test suite..."
-          
+
           # Run the security tests with detailed output
           npm test 2>&1 | tee security-detailed-results.txt
-          
+
           # Check exit status
           if [ ${PIPESTATUS[0]} -eq 0 ]; then
             echo "✅ All security tests passed"
@@ -108,7 +108,7 @@ jobs:
         working-directory: ./
         run: |
           echo "🔐 Validating security module integrity..."
-          
+
           # Test security module functions
           node -e "
             import('./lib/security.js').then(security => {
@@ -148,7 +148,7 @@ jobs:
     name: Dependency Security Scan
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -168,10 +168,10 @@ jobs:
         working-directory: ./scripts
         run: |
           echo "🔍 Running npm audit for vulnerability scanning..."
-          
+
           # Run audit and capture results
           npm audit --audit-level=low --json > audit-results.json || AUDIT_EXIT=$?
-          
+
           # Parse and display results
           if [ -f audit-results.json ]; then
             # Count vulnerabilities by severity
@@ -202,12 +202,12 @@ jobs:
         working-directory: ./scripts
         run: |
           echo "🔍 Checking for known security patterns..."
-          
+
           # Check package.json for dev dependencies in production
           if grep -E '"(mocha|test|dev)"' package.json | grep -v devDependencies; then
             echo "⚠️  Warning: Development dependencies found in production dependencies"
           fi
-          
+
           # Check for any references to unsafe functions (excluding MCP tool names)
           if grep -r '\beval\b\|new Function\|setTimeout.*string\|setInterval.*string' ../lib/ ../scripts/ --exclude="*.md" --exclude-dir="node_modules" 2>/dev/null | grep -v "mcp__"; then
             echo "❌ Potentially unsafe function usage found"
@@ -229,7 +229,7 @@ jobs:
     name: Secret Detection
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -239,20 +239,20 @@ jobs:
       - name: Load secret allowlist
         run: |
           echo "📋 Loading secret detection allowlist..."
-          
+
           # Check if allowlist exists
           if [ ! -f ".github/secret-allowlist.txt" ]; then
             echo "⚠️  No allowlist found at .github/secret-allowlist.txt"
             echo "Creating empty allowlist for reference"
             touch .github/secret-allowlist.txt
           fi
-          
+
           # Parse allowlist into arrays for different types
           declare -A CONTENT_ALLOWLIST
           declare -A PATH_EXCLUDES  
           declare -A PATTERN_EXCLUDES
           declare -A CONTEXT_EXCLUDES
-          
+
           echo "Parsing allowlist entries..."
           while IFS= read -r line || [ -n "$line" ]; do
             # Skip comments and empty lines
@@ -283,13 +283,13 @@ jobs:
               echo "  Added context exclusion: $context in $file_pattern"
             fi
           done < .github/secret-allowlist.txt
-          
+
           echo "✅ Allowlist loaded successfully"
 
       - name: Run secret detection with allowlist filtering
         run: |
           echo "🔍 Scanning for potential secrets and sensitive data with allowlist filtering..."
-          
+
           # Common secret patterns
           SECRET_PATTERNS=(
             "password\s*[=:]\s*['\"][^'\"]+['\"]"
@@ -299,11 +299,11 @@ jobs:
             "['\"][A-Za-z0-9]{32,}['\"]"
             "-----BEGIN.*PRIVATE KEY-----"
           )
-          
+
           SECRETS_FOUND=0
           ALLOWLISTED_FINDINGS=0
           TEMP_RESULTS=$(mktemp)
-          
+
           # Function to check if a file should be excluded based on path
           is_path_excluded() {
             local file_path="$1"
@@ -328,7 +328,7 @@ jobs:
             
             return 1
           }
-          
+
           # Function to check if content matches allowlist
           is_content_allowlisted() {
             local content="$1"
@@ -355,9 +355,9 @@ jobs:
             
             return 1
           }
-          
+
           echo "Scanning with ${#SECRET_PATTERNS[@]} patterns..."
-          
+
           for pattern in "${SECRET_PATTERNS[@]}"; do
             echo "🔍 Checking pattern: $pattern"
             
@@ -392,13 +392,13 @@ jobs:
               fi
             done < <(grep -r -E -i -n "$pattern" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.github 2>/dev/null || true)
           done
-          
+
           echo ""
           echo "📊 Secret Detection Results:"
           echo "  🔍 Total potential matches found: $((SECRETS_FOUND + ALLOWLISTED_FINDINGS))"
           echo "  📋 Allowlisted (false positives): $ALLOWLISTED_FINDINGS" 
           echo "  ⚠️  Potential secrets requiring review: $SECRETS_FOUND"
-          
+
           if [ $SECRETS_FOUND -gt 0 ]; then
             echo ""
             echo "❌ $SECRETS_FOUND potential secrets found that are not allowlisted"
@@ -417,13 +417,13 @@ jobs:
               echo "📋 $ALLOWLISTED_FINDINGS findings were correctly filtered by allowlist"
             fi
           fi
-          
+
           rm -f "$TEMP_RESULTS"
 
       - name: Check for test secrets
         run: |
           echo "🔍 Checking for test secrets that might be real..."
-          
+
           # Look for realistic-looking test data that might be real secrets
           if grep -r -E "(sk-|pk_|ghp_|gho_|ghu_|ghs_)" . --exclude-dir=node_modules 2>/dev/null; then
             echo "⚠️  Found patterns that look like real API keys/tokens"
@@ -437,7 +437,7 @@ jobs:
     name: Configuration Security
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -445,18 +445,18 @@ jobs:
       - name: Check file permissions
         run: |
           echo "🔒 Checking file permissions and security configuration..."
-          
+
           # Check for overly permissive files
           find . -type f -perm /o+w 2>/dev/null | while read file; do
             echo "⚠️  World-writable file found: $file"
           done
-          
+
           # Check installer script permissions
           INSTALLERS=(
             "installers/install.sh"
             "installers/install.ps1"
           )
-          
+
           for installer in "${INSTALLERS[@]}"; do
             if [ -f "$installer" ]; then
               if [ ! -x "$installer" ] && [[ "$installer" == *.sh ]]; then
@@ -471,7 +471,7 @@ jobs:
       - name: Validate configuration files
         run: |
           echo "📋 Validating configuration file security..."
-          
+
           # Check package.json for security issues
           if [ -f "scripts/package.json" ]; then
             echo "Checking package.json..."
@@ -499,7 +499,7 @@ jobs:
     needs: [codeql-analysis, security-test-suite, dependency-scan, secret-scan, config-security]
     if: always()
     timeout-minutes: 5
-    
+
     steps:
       - name: Generate security report
         run: |
@@ -510,7 +510,7 @@ jobs:
           echo "Branch: ${{ github.ref_name }}"
           echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
           echo ""
-          
+
           # Check job results
           echo "📋 Security Check Results:"
           echo "- CodeQL Analysis: ${{ needs.codeql-analysis.result }}"
@@ -519,7 +519,7 @@ jobs:
           echo "- Secret Scan: ${{ needs.secret-scan.result }}"
           echo "- Config Security: ${{ needs.config-security.result }}"
           echo ""
-          
+
           # Overall status
           if [[ "${{ needs.codeql-analysis.result }}" == "success" && 
                 "${{ needs.security-test-suite.result }}" == "success" && 
@@ -540,7 +540,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [codeql-analysis, security-test-suite, dependency-scan, secret-scan, config-security]
     if: success()
-    
+
     steps:
       - name: Security success notification
         run: |

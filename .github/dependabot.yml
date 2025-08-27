@@ -1,81 +1,81 @@
 version: 2
 updates:
   # Monitor npm dependencies in scripts directory
-  - package-ecosystem: "npm"
-    directory: "/gemini-cli/scripts"
+  - package-ecosystem: 'npm'
+    directory: '/gemini-cli/scripts'
     schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "04:00"
-      timezone: "UTC"
+      interval: 'weekly'
+      day: 'sunday'
+      time: '04:00'
+      timezone: 'UTC'
     # Security updates get priority
     open-pull-requests-limit: 10
     reviewers:
-      - "gemini-cli-maintainers"
+      - 'gemini-cli-maintainers'
     labels:
-      - "dependencies"
-      - "security"
+      - 'dependencies'
+      - 'security'
     # Group dependency updates to reduce PR noise
     groups:
       security-updates:
         patterns:
-          - "*"
+          - '*'
         update-types:
-          - "security"
+          - 'security'
       dev-dependencies:
         patterns:
-          - "mocha"
-          - "@types/*"
-          - "eslint*"
-          - "prettier"
-          - "*-cli"
+          - 'mocha'
+          - '@types/*'
+          - 'eslint*'
+          - 'prettier'
+          - '*-cli'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'
     # Automatically merge security patches if they pass tests
     commit-message:
-      prefix: "⬆️"
-      prefix-development: "⬆️ [DEV]"
-      include: "scope"
+      prefix: '⬆️'
+      prefix-development: '⬆️ [DEV]'
+      include: 'scope'
 
   # Monitor npm dependencies in npm package directory (if exists)
-  - package-ecosystem: "npm" 
-    directory: "/gemini-cli/npm"
+  - package-ecosystem: 'npm'
+    directory: '/gemini-cli/npm'
     schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "04:30"
-      timezone: "UTC"
+      interval: 'weekly'
+      day: 'sunday'
+      time: '04:30'
+      timezone: 'UTC'
     open-pull-requests-limit: 5
     labels:
-      - "dependencies"
-      - "npm-package"
+      - 'dependencies'
+      - 'npm-package'
     commit-message:
-      prefix: "📦"
-      include: "scope"
+      prefix: '📦'
+      include: 'scope'
 
   # Monitor GitHub Actions dependencies
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "sunday" 
-      time: "05:00"
-      timezone: "UTC"
+      interval: 'weekly'
+      day: 'sunday'
+      time: '05:00'
+      timezone: 'UTC'
     open-pull-requests-limit: 5
     labels:
-      - "dependencies"
-      - "github-actions"
+      - 'dependencies'
+      - 'github-actions'
     commit-message:
-      prefix: "🔧"
-      prefix-development: "🔧 [CI]"
-      include: "scope"
+      prefix: '🔧'
+      prefix-development: '🔧 [CI]'
+      include: 'scope'
     # Group GitHub Actions updates
     groups:
       github-actions:
         patterns:
-          - "actions/*"
-          - "github/*"
+          - 'actions/*'
+          - 'github/*'
         update-types:
-          - "minor"
-          - "patch"
+          - 'minor'
+          - 'patch'

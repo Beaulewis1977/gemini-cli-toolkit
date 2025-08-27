@@ -33,7 +33,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       is-prerelease: ${{ steps.version.outputs.is-prerelease }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -55,45 +55,45 @@ jobs:
               IS_PRERELEASE=false
             fi
           fi
-          
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "is-prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
-          
+
           echo "🏷️  Release version: $VERSION"
           echo "🔖 Pre-release: $IS_PRERELEASE"
 
       - name: Validate version format
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          
+
           # Remove 'v' prefix if present for validation
           CLEAN_VERSION=${VERSION#v}
-          
+
           # Validate semantic version format
           if ! echo "$CLEAN_VERSION" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'; then
             echo "❌ Invalid version format: $VERSION"
             echo "Expected format: v1.2.3 or 1.2.3 (with optional pre-release and build metadata)"
             exit 1
           fi
-          
+
           echo "✅ Version format is valid: $VERSION"
 
       - name: Check for existing release
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          
+
           # Check if tag already exists (skip if triggered by tag push)
           if [ "${{ github.event_name }}" != "push" ] && git tag -l | grep -q "^$VERSION$"; then
             echo "❌ Tag $VERSION already exists"
             exit 1
           fi
-          
+
           # Check if release already exists on GitHub
           if gh release view "$VERSION" >/dev/null 2>&1; then
             echo "❌ Release $VERSION already exists on GitHub"
             exit 1
           fi
-          
+
           echo "✅ Version $VERSION is available for release"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -104,7 +104,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate-release
     timeout-minutes: 20
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -124,21 +124,21 @@ jobs:
         working-directory: ./scripts
         run: |
           echo "🧪 Running comprehensive test suite for release..."
-          
+
           # Run security tests
           npm test 2>&1 | tee test-results.txt
-          
+
           if [ ${PIPESTATUS[0]} -ne 0 ]; then
             echo "❌ Tests failed - cannot proceed with release"
             exit 1
           fi
-          
+
           echo "✅ All tests passed for release"
 
       - name: Validate installation scripts
         run: |
           echo "🔧 Validating installation scripts for release..."
-          
+
           # Test syntax of shell scripts
           for script in installers/*.sh; do
             if [ -f "$script" ]; then
@@ -149,7 +149,7 @@ jobs:
               echo "✅ $script syntax validated"
             fi
           done
-          
+
           # Test PowerShell script syntax (basic check)
           if [ -f "installers/install.ps1" ]; then
             # Basic validation - check for common syntax issues
@@ -165,7 +165,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [validate-release, pre-release-tests]
     timeout-minutes: 15
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -185,12 +185,12 @@ jobs:
         run: |
           VERSION="${{ needs.validate-release.outputs.version }}"
           PACKAGE_NAME="gemini-cli-${VERSION}"
-          
+
           echo "📦 Creating release package: $PACKAGE_NAME"
-          
+
           # Create release directory
           mkdir -p release-assets
-          
+
           # Create main package
           tar -czf "release-assets/${PACKAGE_NAME}.tar.gz" \
             --exclude='.git*' \
@@ -198,17 +198,17 @@ jobs:
             --exclude='release-assets' \
             --exclude='*.log' \
             ./
-          
+
           # Create Windows package
           zip -r "release-assets/${PACKAGE_NAME}-windows.zip" \
             ./ \
             -x "*.git*" "*/node_modules/*" "release-assets/*" "*.log"
-          
+
           # Create checksums
           cd release-assets
           sha256sum * > checksums.txt
           cd ..
-          
+
           echo "✅ Release assets created successfully"
           ls -la release-assets/
 
@@ -227,7 +227,7 @@ jobs:
     timeout-minutes: 10
     outputs:
       changelog: ${{ steps.changelog.outputs.changelog }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -238,12 +238,12 @@ jobs:
         id: changelog
         run: |
           VERSION="${{ needs.validate-release.outputs.version }}"
-          
+
           echo "📋 Generating changelog for $VERSION..."
-          
+
           # Get the previous tag
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
-          
+
           if [ -n "$PREVIOUS_TAG" ]; then
             echo "📅 Changes since $PREVIOUS_TAG:"
             
@@ -267,7 +267,7 @@ jobs:
           $CHANGELOG
 
           **Full Commit History**: [$PREVIOUS_TAG...$VERSION](https://github.com/${{ github.repository }}/compare/$PREVIOUS_TAG...$VERSION)"
-          
+
           else
             FULL_CHANGELOG="## 🎉 Initial Release $VERSION
 
@@ -287,12 +287,12 @@ jobs:
           - Input validation and sanitization
           - Secure file operations"
           fi
-          
+
           # Save changelog to output
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$FULL_CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-          
+
           echo "✅ Changelog generated successfully"
 
   # Create GitHub release
@@ -301,7 +301,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [validate-release, build-release-assets, generate-changelog]
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -316,17 +316,17 @@ jobs:
         run: |
           VERSION="${{ needs.validate-release.outputs.version }}"
           IS_PRERELEASE="${{ needs.validate-release.outputs.is-prerelease }}"
-          
+
           echo "🚀 Creating GitHub release: $VERSION"
-          
+
           # Create changelog file to avoid shell parsing issues
           cat > changelog.md << 'CHANGELOG_EOF'
           ${{ needs.generate-changelog.outputs.changelog }}
           CHANGELOG_EOF
-          
+
           # Prepare release command arguments
           RELEASE_ARGS=("$VERSION" release-assets/* --title "Gemini CLI Context Command $VERSION" --notes-file changelog.md)
-          
+
           # Add prerelease flag if needed
           if [ "$IS_PRERELEASE" = "true" ]; then
             RELEASE_ARGS+=(--prerelease)
@@ -334,10 +334,10 @@ jobs:
           else
             echo "📢 Creating stable release"
           fi
-          
+
           # Create the release
           gh release create "${RELEASE_ARGS[@]}"
-          
+
           echo "✅ GitHub release created successfully"
           echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/$VERSION"
         env:
@@ -350,7 +350,7 @@ jobs:
     needs: [validate-release, create-github-release]
     if: success() && needs.validate-release.outputs.is-prerelease == 'false'
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -367,9 +367,9 @@ jobs:
         run: |
           VERSION="${{ needs.validate-release.outputs.version }}"
           CLEAN_VERSION=${VERSION#v}  # Remove 'v' prefix
-          
+
           echo "📦 Preparing NPM package version $CLEAN_VERSION"
-          
+
           # Check if NPM package configuration exists
           if [ -f "npm/package.json" ]; then
             cd npm
@@ -398,10 +398,10 @@ jobs:
         working-directory: ./npm
         run: |
           echo "🚀 Publishing to NPM..."
-          
+
           # Dry run first
           npm publish --dry-run
-          
+
           if [ $? -eq 0 ]; then
             # Actual publish
             npm publish
@@ -419,13 +419,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [validate-release, create-github-release, publish-npm]
     if: always()
-    
+
     steps:
       - name: Release status notification
         run: |
           VERSION="${{ needs.validate-release.outputs.version }}"
           IS_PRERELEASE="${{ needs.validate-release.outputs.is-prerelease }}"
-          
+
           echo "🎉 Release $VERSION completed!"
           echo ""
           echo "📊 Release Summary:"
@@ -434,14 +434,14 @@ jobs:
           echo "- GitHub Release: ${{ needs.create-github-release.result }}"
           echo "- NPM Publish: ${{ needs.publish-npm.result }}"
           echo ""
-          
+
           if [[ "${{ needs.create-github-release.result }}" == "success" ]]; then
             echo "✅ GitHub release created successfully"
             echo "🔗 https://github.com/${{ github.repository }}/releases/tag/$VERSION"
           else
             echo "❌ GitHub release failed"
           fi
-          
+
           if [[ "${{ needs.publish-npm.result }}" == "success" ]]; then
             echo "✅ NPM package published successfully"
           elif [[ "${{ needs.publish-npm.result }}" == "skipped" ]]; then
@@ -449,6 +449,6 @@ jobs:
           else
             echo "❌ NPM publish failed"
           fi
-          
+
           echo ""
           echo "🚀 Release process completed!"

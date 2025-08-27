@@ -16,12 +16,13 @@ A powerful `/context` command and supporting scripts that provide detailed analy
 The Gemini CLI Context Command analyzes your current session's token usage breakdown **before you start working**, giving you insights into your setup's efficiency and helping you optimize your Gemini CLI experience:
 
 - **System Prompt**: Base Gemini CLI instructions (~8.5k tokens)
-- **System Tools**: Built-in tools like Read, Write, Edit (~15.2k tokens)  
+- **System Tools**: Built-in tools like Read, Write, Edit (~15.2k tokens)
 - **MCP Tools**: Active Model Context Protocol servers and their tools (variable)
 - **Custom Agents**: Agent configurations in `.gemini/agents/` (project-specific)
 - **Memory Files**: `.gemini/CLAUDE.md` and other context files (project-specific)
 
 **Why check context before working?** Understanding your token allocation helps you:
+
 - 🧠 Know how much headroom you have for conversations
 - ⚡ Identify heavy MCP servers you might want to disable
 - 🎯 Optimize agent configurations for better performance
@@ -46,7 +47,7 @@ The Gemini CLI Context Command analyzes your current session's token usage break
      └ mcp__github-official__create_or_update_file (github-official): 567 tokens
      └ mcp__fetch__fetch (fetch): 643 tokens
 
-     Custom agents • /agents  
+     Custom agents • /agents
      └ system-integration-specialist (Project): 8234 tokens
      └ workflow-orchestrator (Project): 4523 tokens
 
@@ -103,6 +104,7 @@ The project includes a comprehensive security test suite with **25+ test cases**
 - Download integrity verification testing
 
 Run security tests with:
+
 ```bash
 npm test -- --grep "security"
 ```
@@ -140,6 +142,7 @@ Choose your preferred installation method:
 ### Option 1: Quick Install (Recommended)
 
 **Linux/macOS/WSL:**
+
 ```bash
 git clone https://github.com/Beaulewis1977/gemini-cli.git
 cd gemini-cli
@@ -147,6 +150,7 @@ cd gemini-cli
 ```
 
 **Windows (PowerShell):**
+
 ```powershell
 git clone https://github.com/Beaulewis1977/gemini-cli.git
 cd gemini-cli
@@ -165,25 +169,27 @@ curl -sSL https://raw.githubusercontent.com/Beaulewis1977/gemini-cli/main/instal
 npm install -g gemini-cli
 ```
 
-*Note: NPM package will be available after initial repository setup*
+_Note: NPM package will be available after initial repository setup_
 
 ### Option 4: Manual Installation
 
 1. **Create directories:**
+
    ```bash
    mkdir -p ~/.gemini/scripts ~/.gemini/commands
    ```
 
 2. **Download and copy files:**
+
    ```bash
    # Download repository
    git clone https://github.com/Beaulewis1977/gemini-cli.git
    cd gemini-cli
-   
+
    # Copy files
    cp scripts/* ~/.gemini/scripts/
    cp commands/context.md ~/.gemini/commands/
-   
+
    # Set permissions (Linux/macOS/WSL)
    chmod +x ~/.gemini/scripts/*.js
    ```
@@ -208,11 +214,12 @@ Once installed, use the `/context` command in Gemini CLI to analyze your setup *
 
 ```
 /context                    # Quick overview - fits Gemini CLI display (22 lines)
-/context standard          # Moderate detail - top servers and agents (45 lines)  
+/context standard          # Moderate detail - top servers and agents (45 lines)
 /context detailed          # Full breakdown - complete analysis with progress bars (100+ lines)
 ```
 
 **Choose the right mode for your needs:**
+
 - **Quick check** before starting? Use `/context`
 - **Planning optimizations** or **reviewing setup**? Use `/context standard`
 - **Deep analysis** or **troubleshooting performance**? Use `/context detailed`
@@ -231,18 +238,21 @@ node ~/.gemini/scripts/context-cmd.js detailed     # Full analysis
 ### Output Modes
 
 **Compact Mode** (`/context`):
-- 📋 Essential token breakdown with percentages  
+
+- 📋 Essential token breakdown with percentages
 - 📊 Top 3 MCP servers and agents only
 - 🚀 Fits Gemini CLI display - no Ctrl+R needed!
 - ⚡ Perfect for quick checks before starting work
 
 **Standard Mode** (`/context standard`):
+
 - 📈 Moderate detail with top 5 servers per category
 - 🔧 Shows top 3 tools per server for focused optimization
 - 📋 5 most resource-heavy agents listed
 - 💡 Balanced view for planning and optimization
 
 **Detailed Mode** (`/context detailed`):
+
 - 🎨 Beautiful progress bars and full visual breakdown
 - 📊 Complete listing of all MCP tools by server
 - 🔍 Every custom agent with individual token counts
@@ -265,13 +275,13 @@ The tool automatically:
 
 ### Token Analysis Components
 
-| Component | Description | Typical Size |
-|-----------|-------------|--------------|
-| **System Prompt** | Base Gemini CLI instructions | ~8.5k tokens |
-| **System Tools** | Built-in Read, Write, Edit, etc. | ~15.2k tokens |
-| **MCP Tools** | Active MCP server tools | Variable (0-150k+) |
-| **Custom Agents** | Project-specific agent files | Variable (0-50k+) |
-| **Memory Files** | CLAUDE.md and context files | Variable (0-20k+) |
+| Component         | Description                      | Typical Size       |
+| ----------------- | -------------------------------- | ------------------ |
+| **System Prompt** | Base Gemini CLI instructions     | ~8.5k tokens       |
+| **System Tools**  | Built-in Read, Write, Edit, etc. | ~15.2k tokens      |
+| **MCP Tools**     | Active MCP server tools          | Variable (0-150k+) |
+| **Custom Agents** | Project-specific agent files     | Variable (0-50k+)  |
+| **Memory Files**  | CLAUDE.md and context files      | Variable (0-20k+)  |
 
 ### Performance Features
 
@@ -294,16 +304,18 @@ The command now uses optimized stdout handling to ensure you see results the mom
 ## 📋 Examples
 
 ### High MCP Usage Scenario
+
 ```
 MCP tools: 145.6k tokens (76.3%)
 └ mcp__github-official__ (15 tools): 45.2k tokens
-└ mcp__database-tools__ (8 tools): 32.1k tokens  
+└ mcp__database-tools__ (8 tools): 32.1k tokens
 └ mcp__web-scraper__ (12 tools): 28.3k tokens
 
 Recommendation: Consider disabling unused MCP servers
 ```
 
 ### Agent-Heavy Project
+
 ```
 Custom agents: 42.1k tokens (22.3%)
 └ api-integration-specialist: 15.2k tokens
@@ -314,9 +326,10 @@ Recommendation: Review agent file sizes and consolidate
 ```
 
 ### Balanced Usage
+
 ```
 Context Usage: 165k/200k tokens (82.5%)
-⛁ System: 23.7k (12.1%) ⛁ MCP: 85.2k (43.4%) 
+⛁ System: 23.7k (12.1%) ⛁ MCP: 85.2k (43.4%)
 ⛁ Agents: 28.1k (14.3%) ⛁ Memory: 15.2k (7.7%)
 ⛁ Free: 22.8k (11.4%)
 
@@ -324,6 +337,7 @@ Status: Well-optimized project setup
 ```
 
 ### Pre-Work Workflow
+
 ```bash
 # Quick check before starting work
 /context                    # "52% usage, plenty of headroom"
@@ -337,36 +351,40 @@ Status: Well-optimized project setup
 
 ## 🔧 Platform Compatibility
 
-| Platform | Shell Script | PowerShell | NPM | Manual |
-|----------|--------------|------------|-----|--------|
-| **Windows** | ✅ (WSL/Git Bash) | ✅ | ✅ | ✅ |
-| **macOS** | ✅ | ❌ | ✅ | ✅ |
-| **Linux** | ✅ | ❌ | ✅ | ✅ |
-| **WSL** | ✅ | ✅ | ✅ | ✅ |
+| Platform    | Shell Script      | PowerShell | NPM | Manual |
+| ----------- | ----------------- | ---------- | --- | ------ |
+| **Windows** | ✅ (WSL/Git Bash) | ✅         | ✅  | ✅     |
+| **macOS**   | ✅                | ❌         | ✅  | ✅     |
+| **Linux**   | ✅                | ❌         | ✅  | ✅     |
+| **WSL**     | ✅                | ✅         | ✅  | ✅     |
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
 
 **"No .gemini directory found"**
+
 ```bash
 # Make sure you're in a Gemini CLI project directory
 ls -la .gemini/  # Should show project configuration
 ```
 
 **"Node.js not found"**
+
 ```bash
 # Install Node.js from https://nodejs.org/
 node --version  # Should show v14.0.0 or later
 ```
 
 **"Permission denied"**
+
 ```bash
 # Fix script permissions (Linux/macOS/WSL)
 chmod +x ~/.gemini/scripts/*.js
 ```
 
 **"Analysis timeout"**
+
 ```bash
 # The analyzer includes a 10-second timeout for safety
 # Large projects with many MCP servers may need optimization
@@ -381,6 +399,7 @@ chmod +x ~/.gemini/scripts/*.js
 ## 🔄 Updating
 
 **Git-based installations:**
+
 ```bash
 cd gemini-cli
 git pull
@@ -388,6 +407,7 @@ git pull
 ```
 
 **NPM installations:**
+
 ```bash
 npm update -g gemini-cli
 ```
@@ -395,6 +415,7 @@ npm update -g gemini-cli
 ## 🗑 Uninstalling
 
 **Remove files:**
+
 ```bash
 rm -rf ~/.gemini/scripts/context-*.js
 rm ~/.gemini/scripts/package.json
@@ -402,6 +423,7 @@ rm ~/.gemini/commands/context.md
 ```
 
 **NPM installations:**
+
 ```bash
 npm uninstall -g gemini-cli
 # Then manually remove files as above
@@ -414,7 +436,7 @@ npm uninstall -g gemini-cli
 ```
 gemini-cli/
 ├── scripts/                    # Core analysis scripts
-│   ├── context-analyzer.js     # Main analysis engine  
+│   ├── context-analyzer.js     # Main analysis engine
 │   ├── context-analyzer-simple.js  # Fast analyzer
 │   ├── context-cmd.js          # Command wrapper with caching
 │   └── package.json            # Node.js module config
@@ -433,6 +455,7 @@ gemini-cli/
 We'd love your help! Whether you want to fix bugs, add features, improve docs, or test on different platforms.
 
 **Quick start:**
+
 1. Fork this repository
 2. Create a feature branch: `git checkout -b feature-name`
 3. Make your changes
